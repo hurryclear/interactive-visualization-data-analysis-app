@@ -1,0 +1,8 @@
+#!/Users/hurjiang/Documents/101_cs_hc/101_cs_ul/cs_database/24ws_data_visualization/ivda_praktikum/interactive-visualization-data-analysis-app/praktikum2_wein/wein_env/bin/python3.12
+# -*- coding: utf-8 -*-
+import re
+import sys
+from dash.development.build_process import renderer
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(renderer())
