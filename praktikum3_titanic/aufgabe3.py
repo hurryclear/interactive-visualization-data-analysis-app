@@ -1,33 +1,33 @@
+# Import libraries
+import unittest
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedKFold
-import plotly.graph_objects as go
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier, plot_tree, export_text
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score, make_scorer
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
-from sklearn.tree import DecisionTreeClassifier, plot_tree
 import plotly.express as px
 from dash import Dash, dcc, html
+import matplotlib.pyplot as plt
 import io
 import base64
-import matplotlib.pyplot as plt
-
-
-
-
 
 # 1. DATA PREPARATION
 df = pd.read_csv('titanic.csv')
 
 # Clean the data
+# These columns (PassengerId, Name, Ticket, Cabin) are not useful for predicting survival. They either contain unique identifiers or non-informative text data that do not contribute to the model's predictive power.
 df = df.drop(columns=['PassengerId', 'Name', 'Ticket', 'Cabin'], errors='ignore')
+# The 'Age' column has missing values. Using the median to fill these gaps is a common practice because it is robust to outliers and provides a central tendency measure.
 df['Age'] = np.floor(df['Age'])
 df['Age'].fillna(df['Age'].median(), inplace=True)
+# The 'Embarked' column has missing values. Filling them with the most frequent value.
 df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
 df = pd.get_dummies(df, columns=['Sex', 'Embarked'], drop_first=True)
+# Features and target: To prepare the data for modeling, we need to separate the features (input variables) from the target (output variable).
 X = df.drop(columns=['Survived'])
 y = df['Survived']
 
@@ -39,111 +39,179 @@ X_scaled = scaler.fit_transform(X)
 models = {
     "Logistic Regression": LogisticRegression(max_iter=1000),
     "Decision Tree": DecisionTreeClassifier(random_state=42),
-    "KNN (k=3)": KNeighborsClassifier(n_neighbors=3),
+    "KNN (k=3)": KNeighborsClassifier(n_neighbors=3)
 }
 
-# Cross-validation method
-def cross_validate_method(model, X, y):
+# train the model
+def train_model(model, data_train):
+    """Trains the model on the training data."""
+    for data in data_train:
+        X_train, y_train = data[:2]  # Only use the first two values
+        model.fit(X_train, y_train)
+    return model
+
+# cross-validation splits data
+def cross_validation_data(X, y):
+    """Generates train-test splits for cross-validation."""
     cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
-    metrics = {'accuracy': [], 'precision': [], 'recall': [], 'f1': []}
-    confusion_matrices = []
+
+    data_train = []
+    data_test = []
 
     for train_idx, test_idx in cv.split(X, y):
-        model.fit(X[train_idx], y[train_idx])
-        y_pred = model.predict(X[test_idx])
-        metrics['accuracy'].append(accuracy_score(y[test_idx], y_pred))
-        metrics['precision'].append(precision_score(y[test_idx], y_pred, average='weighted', zero_division=0))
-        metrics['recall'].append(recall_score(y[test_idx], y_pred, average='weighted', zero_division=0))
-        metrics['f1'].append(f1_score(y[test_idx], y_pred, average='weighted', zero_division=0))
-        confusion_matrices.append(confusion_matrix(y[test_idx], y_pred))
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y[train_idx], y[test_idx]
+        data_train.append((X_train, y_train))
+        data_test.append((X_test, y_test))
+
+    return data_train, data_test
+
+
+# Cross-validation method
+def cross_validate_evaluation(trained_model, data_test):
+    """Perform cross-validation and return metrics and confusion matrix."""
+    metrics = {'accuracy': [], 'precision': [], 'recall': [], 'f1': []} # Store metrics for each fold
+    confusion_matrices = [] # Store confusion matrices for each fold
+
+    for X_test, y_test in data_test:
+        # predict the data
+        y_pred = trained_model.predict(X_test)
+        metrics['accuracy'].append(accuracy_score(y_test, y_pred))
+        metrics['precision'].append(precision_score(y_test, y_pred, average='weighted', zero_division=0))
+        metrics['recall'].append(recall_score(y_test, y_pred, average='weighted', zero_division=0))
+        metrics['f1'].append(f1_score(y_test, y_pred, average='weighted', zero_division=0))
+        confusion_matrices.append(confusion_matrix(y_test, y_pred))
 
     avg_confusion_matrix = np.mean(confusion_matrices, axis=0)
     avg_metrics = {key: np.mean(value) for key, value in metrics.items()}
-
-
-    return { 
-        **avg_metrics,
+    
+    return { # return a dictionary containing the average metrics and the average confusion matrix.
+        **avg_metrics, # Unpack metrics
         'confusion_matrix': avg_confusion_matrix
+        # 'decision_tree': dt_image
     }
 
-# Bootstrap method
-def bootstrap_632_method(model, X, y):
+# bootstrap splits data
+def bootstrap_632_data(X, y):
+    """Generates train-test splits for the Bootstrap .632 method."""
+    data = []
+    for _ in range(100):  # Number of bootstrap iterations
+        X_boot, y_boot = resample(X, y, replace=True, n_samples=len(X), random_state=42)
+        
+        oob_indices = np.setdiff1d(np.arange(len(X)), np.unique(X_boot, return_index=True)[1])
+        X_oob, y_oob = X[oob_indices], y[oob_indices]
+        data.append((X_boot, y_boot, X_oob, y_oob, oob_indices))
+
+    return data
+
+# bootstrap evaluation
+def bootstrap_632_evaluation(trained_model, data):
     train_metrics = {'accuracy': [], 'precision': [], 'recall': [], 'f1': []}
     test_metrics = {'accuracy': [], 'precision': [], 'recall': [], 'f1': []}
     confusion_matrices = []
 
-    for _ in range(100):  
-        X_boot, y_boot = resample(X, y, replace=True, n_samples=len(X), random_state=42)
-        oob_indices = np.setdiff1d(np.arange(len(X)), np.unique(X_boot, return_index=True)[1])
-        X_oob, y_oob = X[oob_indices], y[oob_indices]
+    for X_boot, y_boot, X_oob, y_oob, oob_indices in data:
 
-        model.fit(X_boot, y_boot)
-        y_pred_train = model.predict(X_boot)
+        y_pred_train = trained_model.predict(X_boot) 
 
+        # Collect train metrics
         train_metrics['accuracy'].append(accuracy_score(y_boot, y_pred_train))
         train_metrics['precision'].append(precision_score(y_boot, y_pred_train, average='weighted', zero_division=0))
         train_metrics['recall'].append(recall_score(y_boot, y_pred_train, average='weighted', zero_division=0))
         train_metrics['f1'].append(f1_score(y_boot, y_pred_train, average='weighted', zero_division=0))
 
+        # Collect test (OOB) metrics if there are out-of-bag samples
         if len(oob_indices) > 0:
-            y_pred_oob = model.predict(X_oob)
+            y_pred_oob = trained_model.predict(X_oob)
             test_metrics['accuracy'].append(accuracy_score(y_oob, y_pred_oob))
             test_metrics['precision'].append(precision_score(y_oob, y_pred_oob, average='weighted', zero_division=0))
             test_metrics['recall'].append(recall_score(y_oob, y_pred_oob, average='weighted', zero_division=0))
             test_metrics['f1'].append(f1_score(y_oob, y_pred_oob, average='weighted', zero_division=0))
             confusion_matrices.append(confusion_matrix(y_oob, y_pred_oob))
-            
+
+    # Aggregate train and test metrics
     train_metrics_mean = {metric: np.mean(train_metrics[metric]) for metric in train_metrics}
     test_metrics_mean = {metric: np.mean(test_metrics[metric]) for metric in test_metrics}
 
+    # Combine metrics using the .632 formula
     combined_metrics = {metric: 0.368 * train_metrics_mean[metric] + 0.632 * test_metrics_mean[metric] for metric in train_metrics}
     avg_confusion_matrix = np.mean(confusion_matrices, axis=0) if confusion_matrices else None
 
     combined_metrics['confusion_matrix'] = avg_confusion_matrix
     return combined_metrics
 
+
+# decision tree visualization for prediction
+def decision_tree_visualization(trained_model, X):
+    """
+    """
+    buf = io.BytesIO()
+    plt.figure(figsize=(15, 10))  # Reduced figure size for better app performance
+    plot_tree(trained_model, feature_names=X.columns, class_names=["Not Survived", "Survived"], filled=True)
+    plt.savefig(buf, format="png")
+    plt.close()
+    buf.seek(0)  # Reset buffer position
+    return base64.b64encode(buf.getvalue()).decode("utf8")
+
+def visualize_decision_path(trained_model, feature_names, class_names, sample_index, X_test, y_test):
+    """
+    Visualize the decision path of a trained Decision Tree for a specific test sample.
+    """
+
+    # Extract the decision path for the test sample
+    node_indicator = trained_model.decision_path(X_test)
+    feature = trained_model.tree_.feature
+    threshold = trained_model.tree_.threshold
+
+    # Select the sample's path
+    sample_path = node_indicator.indices[
+        node_indicator.indptr[sample_index]:node_indicator.indptr[sample_index + 1]
+    ]
+
+    # Print decision path for the sample
+    print(f"Decision path for sample {sample_index}:")
+    for node_id in sample_path:
+        if feature[node_id] != -2:  # Not a leaf node
+            print(f"Node {node_id}: If {feature_names[feature[node_id]]} <= {threshold[node_id]}")
+        else:
+            print(f"Node {node_id}: Leaf node")
+
+    # Visualize the decision tree with the decision path highlighted
+    buf = io.BytesIO()
+    plt.figure(figsize=(15, 10))
+    plot_tree(trained_model, feature_names=feature_names, class_names=class_names, filled=True)
+    plt.savefig(buf, format="png")
+    plt.close()
+    buf.seek(0)
+    return base64.b64encode(buf.getvalue()).decode("utf8")
+
+
+
 # Evaluate models
 crossval_results = {}
 bootstrap_results = {}
+decision_tree_cv = None
+decision_tree_bs = None
 
+# Convert X_scaled to DataFrame for compatibility
+X_scaled_df = pd.DataFrame(X_scaled, columns=X.columns)
+
+# train the model, evaluate the model and store the results in the iteration
 for model_name, model in models.items():
-    crossval_results[model_name] = cross_validate_method(model, X_scaled, y)
-    bootstrap_results[model_name] = bootstrap_632_method(model, X_scaled, y)
-
-# decision tree visualisieren
-def decision_tree_cv_visualization(model, X, y):
-    # Cross-Validation: Trainiere den Baum auf den gesamten Trainingsdaten der Cross-Validation
-    cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+    # Cross-validation
+    data_train_cv, data_test_cv = cross_validation_data(X_scaled, y)
+    trained_model_cv = train_model(model, data_train_cv)
+    crossval_results[model_name] = cross_validate_evaluation(trained_model_cv, data_test_cv)
     
-    # Wir trainieren den Baum auf den gesamten Trainingsdaten
-    for train_idx, test_idx in cv.split(X, y):
-        X_train, y_train = X.iloc[train_idx], y.iloc[train_idx]
-        model.fit(X_train, y_train)
-    
-    # Visualisiere den Baum nach der gesamten Cross-Validation
-    buf = io.BytesIO()
-    plt.figure(figsize=(100, 90))
-    plot_tree(model, feature_names=X.columns, class_names=["Not Survived", "Survived"], filled=True)
-    plt.savefig(buf, format="png")
-    plt.close()
-    return base64.b64encode(buf.getbuffer()).decode("utf8")
+    # Bootstrap
+    data_bs = bootstrap_632_data(X_scaled, y)
+    trained_model_bs = train_model(model, data_bs)
+    bootstrap_results[model_name] = bootstrap_632_evaluation(trained_model_bs, data_bs)
 
-
-def decision_tree_bootstrap_visualization(model, X, y):
-    X_boot, y_boot = resample(X, y, replace=True, n_samples=len(X), random_state=42)
-    model.fit(X_boot, y_boot)
-    
-    # Visualisiere den Baum
-    buf = io.BytesIO()
-    plt.figure(figsize=(100, 90))
-    plot_tree(model, feature_names=X.columns, class_names=["Not Survived", "Survived"], filled=True)
-    plt.savefig(buf, format="png")
-    plt.close()
-    return base64.b64encode(buf.getbuffer()).decode("utf8")
-
-
-decision_tree_cv = decision_tree_cv_visualization(models["Decision Tree"], X, y)
-decision_tree_bootstrap = decision_tree_bootstrap_visualization(models["Decision Tree"], X, y)
+    # Store decision tree visualization if the model is DecisionTreeClassifier
+    if isinstance(model, DecisionTreeClassifier):
+        decision_tree_cv = visualize_decision_path(trained_model_cv, X.columns, ["Not Survived", "Survived"], 0, X_scaled, y)
+        decision_tree_bs = visualize_decision_path(trained_model_bs, X.columns, ["Not Survived", "Survived"], 0, X_scaled, y)
 
 
 # 3. Build Dash App
@@ -191,7 +259,7 @@ app.layout = html.Div([
         ], style={'margin': '10px'})
         for model in models.keys()
     ], style={'display': 'flex', 'flexDirection': 'row', 'flexWrap': 'wrap'}),
-
+    
     html.H3("Confusion Matrices: Bootstrap"),
     html.Div([
         html.Div([
@@ -209,14 +277,10 @@ app.layout = html.Div([
     # Decision Tree visualisierung
     html.H3("Decision Tree(Crossvalidation)"),
     html.Img(src="data:image/png;base64,{}".format(decision_tree_cv), style={'width': '100%', 'height': 'auto'}),
+    html.H3("Decision Tree(Bootstrap)"),
+    html.Img(src="data:image/png;base64,{}".format(decision_tree_bs), style={'width': '100%', 'height': 'auto'}),
 
-    html.H3("Decision Tree (Bootstrap)"),
-    html.Img(src="data:image/png;base64,{}".format(decision_tree_bootstrap), style={'width': '100%', 'height': 'auto'})
 ])
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-
-
-    
