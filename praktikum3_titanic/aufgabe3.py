@@ -51,27 +51,27 @@ models = {
     "KNN (k=3)": [KNeighborsClassifier(n_neighbors=3), KNeighborsClassifier(n_neighbors=3)],
 }
 
-def train_model(model, data_train):
-    """Trains the model on the training data."""
-    for data in data_train:
-        X_train, y_train = data[:2]  # Only use the first two values
-        model.fit(X_train, y_train)
-    return model
+# def train_model(model, data_train):
+#     """Trains the model on the training data."""
+#     for data in data_train:
+#         X_train, y_train = data[:2]  # Only use the first two values
+#         model.fit(X_train, y_train)
+#     return model
 
-def cross_validation_data(X, y):
-    """Generates train-test splits for cross-validation."""
-    cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+# def cross_validation_data(X, y):
+#     """Generates train-test splits for cross-validation."""
+#     cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
 
-    data_train = []
-    data_test = []
+#     data_train = []
+#     data_test = []
 
-    for train_idx, test_idx in cv.split(X, y):
-        X_train, X_test = X[train_idx], X[test_idx]
-        y_train, y_test = y[train_idx], y[test_idx]
-        data_train.append((X_train, y_train))
-        data_test.append((X_test, y_test))
+#     for train_idx, test_idx in cv.split(X, y):
+#         X_train, X_test = X[train_idx], X[test_idx]
+#         y_train, y_test = y[train_idx], y[test_idx]
+#         data_train.append((X_train, y_train))
+#         data_test.append((X_test, y_test))
 
-    return data_train, data_test
+#     return data_train, data_test
 
 # Cross-validation method
 def cross_validate_method(model, X, y):
