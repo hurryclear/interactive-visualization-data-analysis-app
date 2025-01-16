@@ -36,7 +36,7 @@ X_pca = pca.fit_transform(X)
 X_train_pca = pca.fit_transform(X_train)
 X_test_pca = pca.transform(X_test)
 
-# 2. train the model
+# 2.1 train the model
 def train_model(kernel, C, gamma=None, degree=None): 
     # Configure SVC parameters based on kernel type
     if kernel == 'linear':
@@ -204,7 +204,6 @@ app.layout = html.Div([
             dcc.Graph(id='evaluation-metrics-linear', style={'flex': '50%'})
         ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'})  # Graphs side by side
     ]),
-
 
     html.H2("SVM Kernel: Poly"),
     html.Div([
