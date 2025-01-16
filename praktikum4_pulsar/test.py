@@ -1,109 +1,104 @@
-# Required Libraries
-import pandas as pd
+from dash import Dash, dcc, html, Input, Output
 import numpy as np
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.svm import SVC
-from sklearn.metrics import classification_report, accuracy_score
-from sklearn.preprocessing import StandardScaler
-import dash
-from dash import dcc, html
-from dash.dependencies import Input, Output
-import plotly.graph_objs as go
+from sklearn import svm
+import plotly.graph_objects as go
+import pandas as pd
 
-# Load Dataset
-data_path = "pulsar_data.csv"  # Ensure this file is in the same directory as the script
-data = pd.read_csv(data_path)
+# Load the dataset
+file_path = 'pulsar_data.csv'  # Update with your file's path
+pulsar_data = pd.read_csv(file_path)
 
-# Data Preprocessing
-data = data.fillna(data.mean())  # Handle missing values
-X = data.drop(columns=["target_class"])
-y = data["target_class"]
+# Select two features and the target class for visualization
+selected_features = ['Mean of the integrated profile', 'Standard deviation of the integrated profile']
+target_column = 'target_class'
 
-# Train-Test Split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+# Filter the data
+data = pulsar_data.dropna()  # Handle any NaN values
+X = data[selected_features].values
+y = data[target_column].values
 
-# standardize the data
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+# Filter out one class for a binary classification setup as in the original code
+X = X[y != 0]
+y = y[y != 0]
 
-# SVM Parameter Grid
-param_grid = {
-    'C': [0.1, 1, 10, 100],
-    'gamma': [1, 0.1, 0.01, 0.001],
-    'kernel': ['linear', 'rbf']
-}
+# Shuffle and split the data into training and testing sets
+np.random.seed(0)
+order = np.random.permutation(len(X))
+X = X[order]
+y = y[order].astype(float)
 
-# Perform Grid Search
-grid_search = GridSearchCV(SVC(random_state=42), param_grid, cv=5, scoring='accuracy', verbose=0)
-grid_search.fit(X_train, y_train)
+n_sample = len(X)
+X_train = X[: int(0.9 * n_sample)]
+y_train = y[: int(0.9 * n_sample)]
+X_test = X[int(0.9 * n_sample):]
+y_test = y[int(0.9 * n_sample):]
 
-# Results from Grid Search
-results = pd.DataFrame(grid_search.cv_results_)
-
-# Best Model
-best_params = grid_search.best_params_
-best_score = grid_search.best_score_
-best_svm = grid_search.best_estimator_
-
-# Evaluate Best Model on Test Data
-y_pred = best_svm.predict(X_test)
-test_accuracy = accuracy_score(y_test, y_pred)
-test_report = classification_report(y_test, y_pred)
-
-# Dash App Setup
-app = dash.Dash(__name__)
+# Initialize the Dash app
+app = Dash(__name__)
 
 app.layout = html.Div([
-    html.H1("SVM Classification and Parameter Optimization"),
-    
-    html.Div([
-        html.H2("Best Parameters"),
-        html.P(f"C: {best_params['C']}"),
-        html.P(f"Gamma: {best_params['gamma']}"),
-        html.P(f"Kernel: {best_params['kernel']}"),
-        html.P(f"Cross-Validation Accuracy: {best_score:.2f}"),
-        html.P(f"Test Accuracy: {test_accuracy:.2f}")
-    ]),
-
-    html.Div([
-        html.H2("Classification Report"),
-        html.Pre(test_report)
-    ]),
-
-    html.Div([
-        html.H2("Parameter Tuning Results"),
-        dcc.Graph(
-            id='svm-parameter-visualization',
-            figure={
-                'data': [
-                    go.Scatter3d(
-                        x=results['param_C'].astype(float),
-                        y=results['param_gamma'].astype(float),
-                        z=results['mean_test_score'],
-                        mode='markers',
-                        marker=dict(
-                            size=8,
-                            color=results['mean_test_score'],
-                            colorscale='Viridis',
-                            opacity=0.8
-                        ),
-                        text=[f"Kernel: {k}" for k in results['param_kernel']]
-                    )
-                ],
-                'layout': go.Layout(
-                    title="SVM Parameter Tuning Results",
-                    scene={
-                        'xaxis_title': 'C (Regularization)',
-                        'yaxis_title': 'Gamma',
-                        'zaxis_title': 'Mean CV Accuracy'
-                    }
-                )
-            }
-        )
-    ])
+    html.H1("Interactive SVM Decision Boundary Visualization"),
+    dcc.Dropdown(
+        id='kernel-selector',
+        options=[
+            {'label': 'Linear', 'value': 'linear'},
+            {'label': 'RBF', 'value': 'rbf'},
+            {'label': 'Polynomial', 'value': 'poly'}
+        ],
+        value='linear',
+        clearable=False
+    ),
+    dcc.Graph(id='svm-plot')
 ])
 
-# Run the App
-if __name__ == "__main__":
-    app.run_server(debug=True)
+@app.callback(
+    Output('svm-plot', 'figure'),
+    [Input('kernel-selector', 'value')]
+)
+def update_plot(kernel):
+    # Train the SVM model with the selected kernel
+    clf = svm.SVC(kernel=kernel, gamma=10)
+    clf.fit(X_train, y_train)
+    
+    # Create a mesh for decision boundary visualization
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    XX, YY = np.meshgrid(np.linspace(x_min, x_max, 200),
+                         np.linspace(y_min, y_max, 200))
+    Z = clf.decision_function(np.c_[XX.ravel(), YY.ravel()])
+    Z = Z.reshape(XX.shape)
+    
+    # Create the scatter plot
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        x=X[:, 0], y=X[:, 1],
+        mode='markers',
+        marker=dict(color=y, colorscale='Viridis', line=dict(width=1, color='Black')),
+        name='Data Points'
+    ))
+    fig.add_trace(go.Scatter(
+        x=X_test[:, 0], y=X_test[:, 1],
+        mode='markers',
+        marker=dict(color='rgba(255,255,255,0)', line=dict(width=2, color='Black')),
+        name='Test Points'
+    ))
+    fig.add_trace(go.Contour(
+        x=np.linspace(x_min, x_max, 200),
+        y=np.linspace(y_min, y_max, 200),
+        z=Z,
+        colorscale='Viridis',
+        opacity=0.5,
+        showscale=False,
+        contours=dict(showlines=False)
+    ))
+    fig.update_layout(
+        title=f"SVM with {kernel} kernel",
+        xaxis_title=selected_features[0],
+        yaxis_title=selected_features[1],
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+    return fig
+
+# Run the app
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8050)
