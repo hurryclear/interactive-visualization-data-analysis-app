@@ -37,7 +37,7 @@ X_test_pca = pca.transform(X_test)
 
 
 # 2. train the model
-def train_model(kernel, C=1, gamma=0, degree=1): 
+def train_model(kernel, C, gamma=0, degree=1): 
     # Train SVC model with a linear kernel
     svc = svm.SVC(kernel=kernel, C=C)
     svc.fit(X_train_pca, y_train)
@@ -152,8 +152,45 @@ app.layout = html.Div([
 
     html.H2("SVM Kernel: Linear"),
     html.Div([
-        dcc.Graph(id='decision-boundary-linear'),
+        # Slider for parameter 'C'
+        html.Div([
+            html.Label("Adjust Regularization Parameter C:"),
+            dcc.Slider(
+                min=0, max=5,  # Logical range for even spacing
+                marks={0: "0", 1: "0.01", 2: "0.1", 3: "1", 4: "5", 5: "10"},
+                step=None,  # Restrict slider to only these values
+                value=3,  # Default value: 1 (logical position 3)
+                id='c-slider'
+            )
+        ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
+
+        # Container for decision boundary and evaluation metrics
+        html.Div([
+            dcc.Graph(id='decision-boundary-linear', style={'flex': '50%', 'margin-right': '1px'}),
+            dcc.Graph(id='evaluation-metrics-linear', style={'flex': '50%'})
+        ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'})  # Graphs side by side
     ]),
+
+    # html.Div([
+    #     # Slider for parameter 'C'
+    #     html.Div([
+    #         html.Label("Adjust Regularization Parameter C:"),
+    #         dcc.Slider(
+    #             min=0, max=5,  # Logical range for even spacing
+    #             marks={0: "0", 1: "0.01", 2: "0.1", 3: "1", 4: "5", 5: "10"},
+    #             step=None,  # Restrict slider to only these values
+    #             value=3,  # Default value: 1 (logical position 3)
+    #             id='c-slider'
+    #         )
+    #     ], style={'margin-bottom': '20px', 'width': '90%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Center the slider
+
+    #     # Container for decision boundary and evaluation metrics
+    #     html.Div([
+    #         dcc.Graph(id='decision-boundary-linear', style={'width': '600px', 'height': '500px', 'margin-right': '20px'}),
+    #         dcc.Graph(id='evaluation-metrics-linear', style={'width': '600px', 'height': '500px'})
+    #     ], style={'display': 'flex', 'justify-content': 'center', 'flex-wrap': 'wrap', 'max-width': '1200px', 'margin': 'auto'})
+    # ]),
+
 
     html.H2("SVM Kernel: Ploy"),
     html.Div([
@@ -173,10 +210,10 @@ app.layout = html.Div([
 
 @app.callback(
     Output('decision-boundary-linear', 'figure'),
-    Input('decision-boundary-linear', 'id')  # Dummy input to trigger the initial load
+    Input('c-slider', 'value')
 )
-def update_plot(_):
-    fig_linear = vis_decision_boundary("linear", C=1, gamma=0, degree=1)
+def update_plot(c):
+    fig_linear = vis_decision_boundary("linear", C=c, gamma=0, degree=1)
     return fig_linear
     
 @app.callback(
