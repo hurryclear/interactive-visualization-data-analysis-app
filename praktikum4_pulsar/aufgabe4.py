@@ -36,8 +36,7 @@ X_pca = pca.fit_transform(X)
 X_train_pca = pca.fit_transform(X_train)
 X_test_pca = pca.transform(X_test)
 
-
-# 2.1 train the model
+# 2. train the model
 def train_model(kernel, C, gamma=None, degree=None): 
     # Configure SVC parameters based on kernel type
     if kernel == 'linear':
@@ -191,11 +190,11 @@ app.layout = html.Div([
         html.Div([
             html.Label("Adjust Regularization Parameter C:"),
             dcc.Slider(
-                min=0, max=5,  # Logical range for even spacing
-                marks={0: "0", 1: "0.01", 2: "0.1", 3: "1", 4: "5", 5: "10"},
+                min=0, max=4,  # Logical range for even spacing
+                marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
                 step=None,  # Restrict slider to only these values
                 value=3,  # Default value: 1 (logical position 3)
-                id='c-slider'
+                id='c-slider-linear'
             )
         ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
 
@@ -213,13 +212,24 @@ app.layout = html.Div([
         html.Div([
             html.Label("Adjust Regularization Parameter C:"),
             dcc.Slider(
-                min=0, max=5,  # Logical range for even spacing
-                marks={0: "0", 1: "0.01", 2: "0.1", 3: "1", 4: "5", 5: "10"},
+                min=0, max=4,  # Logical range for even spacing
+                marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
                 step=None,  # Restrict slider to only these values
                 value=3,  # Default value: 1 (logical position 3)
-                id='c-slider'
+                id='c-slider-poly'
             )
         ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
+
+        html.Div([
+            html.Label("Adjust Degree:"),
+            dcc.Slider(
+                min=0, max=8,  # Logical range for even spacing
+                marks={0: "2", 1: "3", 2: "4", 3: "5", 4: "6", 5: "7", 6: "8", 7: "9", 8: "10"},  # Define degree options
+                step=None,  # Restrict slider to only these values
+                value=1,  # Default value: 3
+                id='degree-slider-poly'
+            )
+        ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),
 
         # Container for decision boundary and evaluation metrics
         html.Div([
@@ -235,12 +245,22 @@ app.layout = html.Div([
             html.Label("Adjust Regularization Parameter C:"),
             dcc.Slider(
                 min=0, max=5,  # Logical range for even spacing
-                marks={0: "0", 1: "0.01", 2: "0.1", 3: "1", 4: "5", 5: "10"},
+                marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
                 step=None,  # Restrict slider to only these values
                 value=3,  # Default value: 1 (logical position 3)
-                id='c-slider'
+                id='c-slider-rbf'
             )
         ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
+        html.Div([
+            html.Label("Adjust Gamma:"),
+            dcc.Slider(
+                min=0, max=3,  # Logical range for even spacing
+                marks={0: "0.1", 1: "1", 2: "5", 3: "10"},
+                step=None,  # Restrict slider to only these values
+                value=2,  # Default value: 1
+                id='gamma-slider-rbf'
+            )
+        ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),
 
         # Container for decision boundary and evaluation metrics
         html.Div([
@@ -255,11 +275,11 @@ app.layout = html.Div([
         html.Div([
             html.Label("Adjust Regularization Parameter C:"),
             dcc.Slider(
-                min=0, max=5,  # Logical range for even spacing
-                marks={0: "0", 1: "0.01", 2: "0.1", 3: "1", 4: "5", 5: "10"},
+                min=0, max=4,  # Logical range for even spacing
+                marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
                 step=None,  # Restrict slider to only these values
                 value=3,  # Default value: 1 (logical position 3)
-                id='c-slider'
+                id='c-slider-sigmoid'
             )
         ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
 
@@ -274,9 +294,13 @@ app.layout = html.Div([
 @app.callback(
     [Output('decision-boundary-linear', 'figure'),
     Output('evaluation-metrics-linear', 'figure')],
-    [Input('c-slider', 'value')]
+    [Input('c-slider-linear', 'value')]
 )
-def update_plot(c):
+def update_plot(c_position):
+    # Map slider position to actual C values
+    c_values = [0.01, 0.1, 1, 5, 10]
+    c = c_values[int(c_position)]
+
     x_min, x_max, y_min, y_max, Z, svc = train_model("linear", c)
     accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
     decision_boundary_linear = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
@@ -286,10 +310,17 @@ def update_plot(c):
 @app.callback(
     [Output('decision-boundary-poly', 'figure'),
     Output('evaluation-metrics-poly', 'figure')],
-    [Input('c-slider', 'value')]
+    [Input('c-slider-poly', 'value'),
+    Input('degree-slider-poly', 'value')]
 )
-def update_plot(c):
-    x_min, x_max, y_min, y_max, Z, svc = train_model("poly", c, gamma="auto", degree=3) # degree should be changable
+def update_plot(c_position, degree_position):
+    # Map slider positions to actual C and degree values
+    c_values = [0.01, 0.1, 1, 5, 10]
+    degree_values = [2, 3, 4, 5, 6, 7, 8, 9, 10]  # Define degree options
+    c = c_values[int(c_position)]
+    degree = degree_values[int(degree_position)]
+
+    x_min, x_max, y_min, y_max, Z, svc = train_model("poly", c, degree=degree) # degree should be changable
     accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
     decision_boundary_poly = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_poly = visua_evaluation(accuracy, precision, recall, f1)
@@ -298,10 +329,17 @@ def update_plot(c):
 @app.callback(
     [Output('decision-boundary-rbf', 'figure'),
     Output('evaluation-metrics-rbf', 'figure')],
-    [Input('c-slider', 'value')]
+    [Input('c-slider-rbf', 'value'),
+    Input('gamma-slider-rbf', 'value')]
 )
-def update_plot(c):
-    x_min, x_max, y_min, y_max, Z, svc = train_model("rbf", c, gamma=1) # gamma should be changable
+def update_plot(c_position, gamma_position):
+    # Map slider positions to actual C and gamma values
+    c_values = [0.01, 0.1, 1, 5, 10]
+    gamma_values = [0.1, 1, 5, 10]
+    c = c_values[int(c_position)]
+    gamma = gamma_values[int(gamma_position)]
+
+    x_min, x_max, y_min, y_max, Z, svc = train_model("rbf", c, gamma=gamma) # gamma should be changable
     accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
     decision_boundary_rbf = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_rbf = visua_evaluation(accuracy, precision, recall, f1)
@@ -310,9 +348,11 @@ def update_plot(c):
 @app.callback(
     [Output('decision-boundary-sigmoid', 'figure'),
     Output('evaluation-metrics-sigmoid', 'figure')],
-    [Input('c-slider', 'value')]
+    [Input('c-slider-sigmoid', 'value')]
 )
-def update_plot(c):
+def update_plot(c_position):
+    c_values = [0.01, 0.1, 1, 5, 10]
+    c = c_values[int(c_position)]
     x_min, x_max, y_min, y_max, Z, svc = train_model("sigmoid", c, gamma=2, degree=3)
     accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
     decision_boundary_sigmoid = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
