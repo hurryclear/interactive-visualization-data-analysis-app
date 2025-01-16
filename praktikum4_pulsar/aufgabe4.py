@@ -37,32 +37,26 @@ X_test_pca = pca.transform(X_test)
 
 
 # 2. train the model
-# Train SVC model with a linear kernel
-svc = svm.SVC(kernel="linear", C=1)
-svc.fit(X_train_pca, y_train)
+def train_model(kernel, C=1, gamma=0, degree=1): 
+    # Train SVC model with a linear kernel
+    svc = svm.SVC(kernel=kernel, C=C)
+    svc.fit(X_train_pca, y_train)
 
-# Create a meshgrid for plotting decision boundaries
-x_min, x_max = X_train_pca[:, 0].min() - 1, X_train_pca[:, 0].max() + 1
-y_min, y_max = X_train_pca[:, 1].min() - 1, X_train_pca[:, 1].max() + 1
-xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
+    # Create a meshgrid for plotting decision boundaries
+    x_min, x_max = X_train_pca[:, 0].min() - 1, X_train_pca[:, 0].max() + 1
+    y_min, y_max = X_train_pca[:, 1].min() - 1, X_train_pca[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
 
-# Decision function for plotting decision boundaries
-Z = svc.decision_function(np.c_[xx.ravel(), yy.ravel()])
-Z = Z.reshape(xx.shape)
+    # Decision function for plotting decision boundaries
+    Z = svc.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
 
-# Initialize Dash app
-app = dash.Dash(__name__)
+    return x_min, x_max, y_min, y_max, Z
 
-app.layout = html.Div([
-    html.H1("Improved SVC Decision Boundary Visualization"),
-    dcc.Graph(id='decision-boundary-plot'),
-])
+# 3. visualize the decision boundary
+def vis_decision_boundary(kernel, C, gamma, degree):
+    x_min, x_max, y_min, y_max, Z = train_model(kernel, C, gamma, degree)
 
-@app.callback(
-    Output('decision-boundary-plot', 'figure'),
-    Input('decision-boundary-plot', 'id')  # Dummy input to trigger the initial load
-)
-def update_plot(_):
     # Create the decision boundary plot
     fig = go.Figure()
 
@@ -123,19 +117,20 @@ def update_plot(_):
         name='Test Data'
     ))
 
-    # # Add training data
-    # fig.add_trace(go.Scatter(
-    #     x=X_train_pca[:, 0],
-    #     y=X_train_pca[:, 1],
-    #     mode='markers',
-    #     marker=dict(
-    #         color=y_train, 
-    #         colorscale='RdBu', 
-    #         size=7, 
-    #         line=dict(width=0.5, color='black')),
-    #     name='Training Data (filled circles)'
-    # ))
-
+    # Add training data
+    see_training_data = 0
+    if see_training_data == 1:
+        fig.add_trace(go.Scatter(
+            x=X_train_pca[:, 0],
+            y=X_train_pca[:, 1],
+            mode='markers',
+            marker=dict(
+                color=y_train, 
+                colorscale='RdBu', 
+                size=7, 
+                line=dict(width=0.5, color='black')),
+            name='Training Data (filled circles)'
+        ))
 
     # Update layout
     fig.update_layout(
@@ -145,6 +140,71 @@ def update_plot(_):
         showlegend=True
     )
     return fig
+
+# 4. evaluate the model
+# def evaluate_model():
+
+# Initialize Dash app
+app = dash.Dash(__name__)
+
+app.layout = html.Div([
+    html.H1("SVM Decision Boundary Visualization"),
+
+    html.H2("SVM Kernel: Linear"),
+    html.Div([
+        dcc.Graph(id='decision-boundary-linear'),
+    ]),
+
+    html.H2("SVM Kernel: Ploy"),
+    html.Div([
+        dcc.Graph(id='decision-boundary-poly'),
+    ]),
+
+    html.H2("SVM Kernel: RBF"),
+    html.Div([
+        dcc.Graph(id='decision-boundary-rbf'),
+    ]),
+
+    html.H2("SVM Kernel: Sigmoid"),
+    html.Div([
+        dcc.Graph(id='decision-boundary-sigmoid'),
+    ]),
+])
+
+@app.callback(
+    Output('decision-boundary-linear', 'figure'),
+    Input('decision-boundary-linear', 'id')  # Dummy input to trigger the initial load
+)
+def update_plot(_):
+    fig_linear = vis_decision_boundary("linear", C=1, gamma=0, degree=1)
+    return fig_linear
+    
+@app.callback(
+    Output('decision-boundary-poly', 'figure'),
+    Input('decision-boundary-poly', 'id')  # Dummy input to trigger the initial load
+)
+def update_plot(_):
+    fig_poly = vis_decision_boundary("poly", C=1, gamma=0, degree=1)
+    return fig_poly
+
+@app.callback(
+    Output('decision-boundary-rbf', 'figure'),
+    Input('decision-boundary-rbf', 'id')  # Dummy input to trigger the initial load
+)
+def update_plot(_):
+    fig_rbf = vis_decision_boundary("rbf", C=1, gamma=0, degree=1)
+    return fig_rbf
+
+@app.callback(
+    Output('decision-boundary-sigmoid', 'figure'),
+    Input('decision-boundary-sigmoid', 'id')  # Dummy input to trigger the initial load
+)
+def update_plot(_):
+    fig_rbf = vis_decision_boundary("sigmoid", C=1, gamma=0, degree=1)
+    return fig_rbf
+
+
+
 
 # Run the Dash app
 if __name__ == '__main__':
