@@ -9,6 +9,8 @@ from sklearn import svm
 import numpy as np
 import plotly.graph_objects as go
 
+
+# 1. prepare the data (load, clean, split, standardize, pca)
 # Load the dataset
 data = pd.read_csv('pulsar_data.csv')
 
@@ -29,9 +31,12 @@ X_test = scaler.transform(X_test)
 
 # Reduce data to 2D for visualization using PCA
 pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
 X_train_pca = pca.fit_transform(X_train)
 X_test_pca = pca.transform(X_test)
 
+
+# 2. train the model
 # Train SVC model with a linear kernel
 svc = svm.SVC(kernel="linear", C=1)
 svc.fit(X_train_pca, y_train)
@@ -57,84 +62,80 @@ app.layout = html.Div([
     Output('decision-boundary-plot', 'figure'),
     Input('decision-boundary-plot', 'id')  # Dummy input to trigger the initial load
 )
-def update_decision_boundary(_):
+def update_plot(_):
     # Create the decision boundary plot
     fig = go.Figure()
 
-    # Add background colors for the regions
+    # Add region shading to distinguish classes
+    fig.add_trace(go.Contour(
+        x=np.linspace(x_min, x_max, 200),
+        y=np.linspace(y_min, y_max, 200),
+        z=(Z > 0).astype(int),  # Shade the regions based on the decision boundary
+        colorscale=[
+            [0, "red"], 
+            [1, "blue"]
+        ],  # Two distinct region colors
+        opacity=0.1,
+        showscale=False
+    ))
+
+    # Add decision boundary
     fig.add_trace(go.Contour(
         x=np.linspace(x_min, x_max, 200),
         y=np.linspace(y_min, y_max, 200),
         z=Z,
-        showscale=False,
-        colorscale=[(0, "purple"), (0.5, "purple"), (0.5, "yellow"), (1, "yellow")],
-        opacity=0.4,
         contours=dict(
-            start=-1,
-            end=1,
-            size=2,
-            coloring="fill",
-        )
-    ))
-
-    # Add decision boundary and margins
-    fig.add_contour(
-        x=np.linspace(x_min, x_max, 200),
-        y=np.linspace(y_min, y_max, 200),
-        z=Z,
-        contours=dict(
-            start=-1, end=1, size=1,
-            coloring="lines",
+            value=0,  # Decision boundary level
+            type="constraint",
+            showlabels=False,
         ),
-        line_width=2,
-        line_color="black",
-        line_dash="solid"
-    )
-
-    # # Add decision boundary
-    # fig.add_contour(
-    #     x=np.linspace(x_min, x_max, 200),
-    #     y=np.linspace(y_min, y_max, 200),
-    #     z=Z,
-    #     contours=dict(
-    #         start=0, end=0, size=1,
-    #     ),
-    #     line_width=2,
-    #     line_color="black",
-    #     line_dash="solid"
-    # )
-
-    # # Add margin boundaries
-    # fig.add_contour(
-    #     x=np.linspace(x_min, x_max, 200),
-    #     y=np.linspace(y_min, y_max, 200),
-    #     z=Z,
-    #     contours=dict(
-    #         start=-1, end=1, size=2,
-    #     ),
-    #     line_width=2,
-    #     line_color="black",
-    #     line_dash="dash"
-    # )
-
-
-    # Add training samples
-    fig.add_trace(go.Scatter(
-        x=X_train_pca[:, 0],
-        y=X_train_pca[:, 1],
-        mode='markers',
-        marker=dict(color=y_train, colorscale='Viridis', size=7, line=dict(width=0.5, color='black')),
-        name='Training Samples'
+        line=dict(color="black", width=1.5, dash="solid"),  # Solid black line
+        name="Decision Boundary"
     ))
 
-    # Highlight support vectors
+    # Add dashed lines for the margins (-0.5, 0.5)
+    for margin in [-0.5, 0.5]:
+        fig.add_trace(go.Contour(
+            x=np.linspace(x_min, x_max, 200),
+            y=np.linspace(y_min, y_max, 200),
+            z=Z,
+            contours=dict(
+                value=margin,  # Margin level
+                showlabels=False,
+                type="constraint"
+            ),
+            line=dict(color="black", width=1.5, dash="dash"),
+            name="Margin"
+        ))
+
+    # Add test data
     fig.add_trace(go.Scatter(
-        x=svc.support_vectors_[:, 0],
-        y=svc.support_vectors_[:, 1],
+        x=X_test_pca[:, 0],
+        y=X_test_pca[:, 1],
         mode='markers',
-        marker=dict(color='black', size=9, symbol='circle-open'),
-        name='Support Vectors'
+        marker=dict(
+            color=y_test,
+            colorscale="RdBu",
+            size=10,
+            line=dict(color='black', width=2),
+            symbol='circle-open'
+        ),
+        name='Test Data'
     ))
+
+    # # Add training data
+    # fig.add_trace(go.Scatter(
+    #     x=X_train_pca[:, 0],
+    #     y=X_train_pca[:, 1],
+    #     mode='markers',
+    #     marker=dict(
+    #         color=y_train, 
+    #         colorscale='RdBu', 
+    #         size=7, 
+    #         line=dict(width=0.5, color='black')),
+    #     name='Training Data (filled circles)'
+    # ))
+
 
     # Update layout
     fig.update_layout(
