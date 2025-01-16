@@ -1,35 +1,28 @@
-from dash import Dash, dcc, html, Input, Output
+from dash import Dash, dcc, html
+from dash.dependencies import Input, Output
 import numpy as np
-from sklearn import svm
+from sklearn import datasets, svm
 import plotly.graph_objects as go
-import pandas as pd
 
-# Load the dataset
-file_path = 'pulsar_data.csv'  # Update with your file's path
-pulsar_data = pd.read_csv(file_path)
+# Load and preprocess the Iris dataset
+iris = datasets.load_iris()
+X = iris.data
+y = iris.target
 
-# Select two features and the target class for visualization
-selected_features = ['Mean of the integrated profile', 'Standard deviation of the integrated profile']
-target_column = 'target_class'
-
-# Filter the data
-data = pulsar_data.dropna()  # Handle any NaN values
-X = data[selected_features].values
-y = data[target_column].values
-
-# Filter out one class for a binary classification setup as in the original code
-X = X[y != 0]
+# Use only two classes and two features for visualization
+X = X[y != 0, :2]
 y = y[y != 0]
 
-# Shuffle and split the data into training and testing sets
+# Shuffle the dataset
 np.random.seed(0)
 order = np.random.permutation(len(X))
 X = X[order]
 y = y[order].astype(float)
 
+# Split into training and testing sets
 n_sample = len(X)
-X_train = X[: int(0.9 * n_sample)]
-y_train = y[: int(0.9 * n_sample)]
+X_train = X[:int(0.9 * n_sample)]
+y_train = y[:int(0.9 * n_sample)]
 X_test = X[int(0.9 * n_sample):]
 y_test = y[int(0.9 * n_sample):]
 
@@ -48,8 +41,9 @@ app.layout = html.Div([
         value='linear',
         clearable=False
     ),
-    dcc.Graph(id='svm-plot')
+    dcc.Graph(id='svm-plot', style={"height": "80vh"})
 ])
+
 
 @app.callback(
     Output('svm-plot', 'figure'),
@@ -59,7 +53,7 @@ def update_plot(kernel):
     # Train the SVM model with the selected kernel
     clf = svm.SVC(kernel=kernel, gamma=10)
     clf.fit(X_train, y_train)
-    
+
     # Create a mesh for decision boundary visualization
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
@@ -67,37 +61,60 @@ def update_plot(kernel):
                          np.linspace(y_min, y_max, 200))
     Z = clf.decision_function(np.c_[XX.ravel(), YY.ravel()])
     Z = Z.reshape(XX.shape)
-    
-    # Create the scatter plot
+
+    # Create the figure
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=X[:, 0], y=X[:, 1],
-        mode='markers',
-        marker=dict(color=y, colorscale='Viridis', line=dict(width=1, color='Black')),
-        name='Data Points'
-    ))
-    fig.add_trace(go.Scatter(
-        x=X_test[:, 0], y=X_test[:, 1],
-        mode='markers',
-        marker=dict(color='rgba(255,255,255,0)', line=dict(width=2, color='Black')),
-        name='Test Points'
-    ))
+
+    # Add the decision boundary and margins
     fig.add_trace(go.Contour(
         x=np.linspace(x_min, x_max, 200),
         y=np.linspace(y_min, y_max, 200),
         z=Z,
-        colorscale='Viridis',
-        opacity=0.5,
         showscale=False,
-        contours=dict(showlines=False)
+        colorscale='RdBu',
+        opacity=0.8,
+        contours=dict(
+            start=-1, end=1, size=0.5,
+            coloring="lines"
+        )
     ))
+
+    # Add training data points
+    fig.add_trace(go.Scatter(
+        x=X_train[:, 0],
+        y=X_train[:, 1],
+        mode='markers',
+        marker=dict(color=y_train, colorscale='RdBu', size=8, line=dict(color='black', width=1)),
+        name='Training Data'
+    ))
+
+    # Add test data points (circled for distinction)
+    fig.add_trace(go.Scatter(
+        x=X_test[:, 0],
+        y=X_test[:, 1],
+        mode='markers',
+        marker=dict(
+            color=y_test,
+            colorscale='RdBu',
+            size=12,
+            line=dict(color='black', width=2),
+            symbol='circle-open'
+        ),
+        name='Test Data'
+    ))
+
+    # Update layout
     fig.update_layout(
-        title=f"SVM with {kernel} kernel",
-        xaxis_title=selected_features[0],
-        yaxis_title=selected_features[1],
-        margin=dict(l=40, r=40, t=40, b=40)
+        title=f"SVM Decision Boundary with {kernel} Kernel",
+        xaxis_title="Feature 1",
+        yaxis_title="Feature 2",
+        xaxis=dict(range=[x_min, x_max]),
+        yaxis=dict(range=[y_min, y_max]),
+        height=700
     )
+
     return fig
+
 
 # Run the app
 if __name__ == '__main__':
