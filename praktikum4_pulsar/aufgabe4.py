@@ -286,10 +286,10 @@ def update_plot(c):
 @app.callback(
     [Output('decision-boundary-poly', 'figure'),
     Output('evaluation-metrics-poly', 'figure')],
-    [Input('c-slider', 'value')]  # Dummy input to trigger the initial load
+    [Input('c-slider', 'value')]
 )
 def update_plot(c):
-    x_min, x_max, y_min, y_max, Z, svc = train_model("poly", c, gamma="auto", degree=3)
+    x_min, x_max, y_min, y_max, Z, svc = train_model("poly", c, gamma="auto", degree=3) # degree should be changable
     accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
     decision_boundary_poly = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_poly = visua_evaluation(accuracy, precision, recall, f1)
@@ -298,10 +298,10 @@ def update_plot(c):
 @app.callback(
     [Output('decision-boundary-rbf', 'figure'),
     Output('evaluation-metrics-rbf', 'figure')],
-    [Input('c-slider', 'value')]  # Dummy input to trigger the initial load
+    [Input('c-slider', 'value')]
 )
 def update_plot(c):
-    x_min, x_max, y_min, y_max, Z, svc = train_model("rbf", c, gamma=2, degree=3)
+    x_min, x_max, y_min, y_max, Z, svc = train_model("rbf", c, gamma=1) # gamma should be changable
     accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
     decision_boundary_rbf = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_rbf = visua_evaluation(accuracy, precision, recall, f1)
@@ -310,7 +310,7 @@ def update_plot(c):
 @app.callback(
     [Output('decision-boundary-sigmoid', 'figure'),
     Output('evaluation-metrics-sigmoid', 'figure')],
-    [Input('c-slider', 'value')]  # Dummy input to trigger the initial load
+    [Input('c-slider', 'value')]
 )
 def update_plot(c):
     x_min, x_max, y_min, y_max, Z, svc = train_model("sigmoid", c, gamma=2, degree=3)
