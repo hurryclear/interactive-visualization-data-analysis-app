@@ -1,107 +1,150 @@
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
 import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.svm import SVC
-from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Input
-from tensorflow.keras.utils import plot_model
-
-from dash import Dash, dcc, html, Input as DashInput, Output
-import plotly.express as px
+from sklearn import svm
+import numpy as np
 import plotly.graph_objects as go
-import dash_bootstrap_components as dbc
 
-import matplotlib.pyplot as plt
+# Load the dataset
+data = pd.read_csv('pulsar_data.csv')
 
-# 1. Load and prepare the dataset
-# get to know the dataset
-data = pd.read_csv("pulsar_data.csv")
-data_head = data.head()
-data_tail = data.tail()
-# data_info = data.info()
-
-# handle missing values by replacing them with the mean of the column
+# Handle missing values by replacing them with the mean of the column
 data_cleaned = data.fillna(data.mean())
 
-# feature X and target y
-X = data_cleaned.drop(columns = ["target_class"])
+# Feature X and target y
+X = data_cleaned.drop(columns=["target_class"])
 y = data_cleaned["target_class"]
 
-# print(X.info())
-
-# split the data into training and test data (80% training, 20% test)
+# Split the data into training and test data (80% training, 20% test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
 
-# standardize the data (do I need it?)
+# Standardize the data
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# PCA: Principal Component Analysis
+# Reduce data to 2D for visualization using PCA
+pca = PCA(n_components=2)
+X_train_pca = pca.fit_transform(X_train)
+X_test_pca = pca.transform(X_test)
 
+# Train SVC model with a linear kernel
+svc = svm.SVC(kernel="linear", C=1)
+svc.fit(X_train_pca, y_train)
 
+# Create a meshgrid for plotting decision boundaries
+x_min, x_max = X_train_pca[:, 0].min() - 1, X_train_pca[:, 0].max() + 1
+y_min, y_max = X_train_pca[:, 1].min() - 1, X_train_pca[:, 1].max() + 1
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
 
-# 2. SVM
-# parameter grid
-param_grid = {
-    'C': [0.01, 0.1, 1, 10],
-    'gamma': [0.01, 0.1, 1],
-    'degree': [2, 3, 4]
-}
+# Decision function for plotting decision boundaries
+Z = svc.decision_function(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
 
-def train_clf (C, gamma, degree):
-    models = (
-        SVC(kernel='linear', C=C),
-        SVC(kernel='poly', C=C, degree=degree),
-        SVC(kernel='rbf', C=C, gamma=gamma),
-        SVC(kernel='sigmoid', C=C, gamma=gamma)
-    )
-    clfs = (model.fit(X_train, y_train) for model in models)
+# Initialize Dash app
+app = dash.Dash(__name__)
 
-    return clfs
-
-# def evaluate_clf():
-
-# def get_best_clf():
-
-
-
-
-app = Dash(__name__)
-
-# Define the scatter plot using Plotly
-fig = go.Figure()
-
-# Add points for each class
-for class_value in np.unique(y):
-    fig.add_trace(go.Scatter(
-        x=X[y == class_value, 0],
-        y=X[y == class_value, 1],
-        mode='markers',
-        marker=dict(size=10, line=dict(width=2), symbol='circle'),
-        name=f'Class {class_value}'
-    ))
-
-# Update the layout
-fig.update_layout(
-    title="Samples in two-dimensional feature space",
-    xaxis=dict(title="Feature 1", range=[-3, 3]),
-    yaxis=dict(title="Feature 2", range=[-3, 3]),
-    legend=dict(title="Classes"),
-    width=500,
-    height=400
-)
-
-# Define the Dash layout
 app.layout = html.Div([
-    html.H1("2D Feature Space Visualization"),
-    dcc.Graph(figure=fig)
+    html.H1("Improved SVC Decision Boundary Visualization"),
+    dcc.Graph(id='decision-boundary-plot'),
 ])
 
+@app.callback(
+    Output('decision-boundary-plot', 'figure'),
+    Input('decision-boundary-plot', 'id')  # Dummy input to trigger the initial load
+)
+def update_decision_boundary(_):
+    # Create the decision boundary plot
+    fig = go.Figure()
 
-if __name__ == "__main__":
+    # Add background colors for the regions
+    fig.add_trace(go.Contour(
+        x=np.linspace(x_min, x_max, 200),
+        y=np.linspace(y_min, y_max, 200),
+        z=Z,
+        showscale=False,
+        colorscale=[(0, "purple"), (0.5, "purple"), (0.5, "yellow"), (1, "yellow")],
+        opacity=0.4,
+        contours=dict(
+            start=-1,
+            end=1,
+            size=2,
+            coloring="fill",
+        )
+    ))
+
+    # Add decision boundary and margins
+    fig.add_contour(
+        x=np.linspace(x_min, x_max, 200),
+        y=np.linspace(y_min, y_max, 200),
+        z=Z,
+        contours=dict(
+            start=-1, end=1, size=1,
+            coloring="lines",
+        ),
+        line_width=2,
+        line_color="black",
+        line_dash="solid"
+    )
+
+    # # Add decision boundary
+    # fig.add_contour(
+    #     x=np.linspace(x_min, x_max, 200),
+    #     y=np.linspace(y_min, y_max, 200),
+    #     z=Z,
+    #     contours=dict(
+    #         start=0, end=0, size=1,
+    #     ),
+    #     line_width=2,
+    #     line_color="black",
+    #     line_dash="solid"
+    # )
+
+    # # Add margin boundaries
+    # fig.add_contour(
+    #     x=np.linspace(x_min, x_max, 200),
+    #     y=np.linspace(y_min, y_max, 200),
+    #     z=Z,
+    #     contours=dict(
+    #         start=-1, end=1, size=2,
+    #     ),
+    #     line_width=2,
+    #     line_color="black",
+    #     line_dash="dash"
+    # )
+
+
+    # Add training samples
+    fig.add_trace(go.Scatter(
+        x=X_train_pca[:, 0],
+        y=X_train_pca[:, 1],
+        mode='markers',
+        marker=dict(color=y_train, colorscale='Viridis', size=7, line=dict(width=0.5, color='black')),
+        name='Training Samples'
+    ))
+
+    # Highlight support vectors
+    fig.add_trace(go.Scatter(
+        x=svc.support_vectors_[:, 0],
+        y=svc.support_vectors_[:, 1],
+        mode='markers',
+        marker=dict(color='black', size=9, symbol='circle-open'),
+        name='Support Vectors'
+    ))
+
+    # Update layout
+    fig.update_layout(
+        title="Decision Boundaries of Linear Kernel in SVC",
+        xaxis_title="PCA Component 1",
+        yaxis_title="PCA Component 2",
+        showlegend=True
+    )
+    return fig
+
+# Run the Dash app
+if __name__ == '__main__':
     app.run_server(debug=True)
