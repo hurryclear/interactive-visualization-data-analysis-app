@@ -15,9 +15,10 @@ X_TEST_PATH = "dff_X_test.npy"
 Y_TEST_PATH = "dff_y_test.npy"
 EVAL_PATH = "dff_evaluation_metrics.json"
 
+# 1. Prepare the data
+X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca = pre_data(2)
+
 def train_and_save_model():
-    # 1. Prepare the data
-    X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca = pre_data(2)
 
     # 2. Build the network
     model = Sequential([
@@ -44,12 +45,12 @@ def train_and_save_model():
     # 4. Evaluate the model
     y_pred = (model.predict(X_test) > 0.5).astype(int)
     conf_matrix = confusion_matrix(y_test, y_pred)
-    report = classification_report(y_test, y_pred, output_dict=True)
+    class_report = classification_report(y_test, y_pred, output_dict=True)
 
     # Save evaluation metrics
     evaluation = {
         "confusion_matrix": conf_matrix.tolist(),  # Convert numpy array to list for JSON serialization
-        "classification_report": report
+        "classification_report": class_report
     }
     with open(EVAL_PATH, 'w') as f:
         json.dump(evaluation, f)
@@ -63,10 +64,21 @@ def train_and_save_model():
 
     print(f"Model, history, and evaluation metrics saved: {MODEL_PATH}, {HISTORY_PATH}, {EVAL_PATH}")
 
+from sklearn.metrics import precision_score, recall_score, f1_score
+
 
 # Helper functions for visualization
+# def evaluation_metrics(accuracy, precision, recall, f1) import from svm_model.py, it is the same
+def calculate_accuracy(confusion_matrix):
+    """
+    Calculate accuracy from the confusion matrix.
+    """
+    true_positives_and_negatives = sum(confusion_matrix[i][i] for i in range(len(confusion_matrix)))
+    total_samples = sum(sum(row) for row in confusion_matrix)
+    accuracy = true_positives_and_negatives / total_samples
+    return accuracy
 
-def create_learning_curves(history):
+def learning_curves_dff(history):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         y=history['accuracy'], mode='lines+markers', name='Train Accuracy'))
@@ -84,7 +96,7 @@ def create_learning_curves(history):
     )
     return fig
 
-def create_confusion_matrix(conf_matrix):
+def confusion_matrix_dff(conf_matrix):
     fig = go.Figure(data=go.Heatmap(
         z=conf_matrix,
         x=["Predicted 0", "Predicted 1"],

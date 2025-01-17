@@ -1,12 +1,12 @@
+import os
 import dash
 import json
-import os
 import numpy as np
 from dash import dcc, html
 from dash.dependencies import Input, Output
 from tensorflow.keras.models import load_model
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
-from dff_model import create_learning_curves, create_confusion_matrix
+from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy
 
 # File paths for saved artifacts
 MODEL_PATH = "dff_model.h5"
@@ -124,14 +124,17 @@ app.layout = html.Div([
     ]),
 
     html.H1("Deep Feedforward Neural Network Visualization"),
-    
+
+    html.H2("DFF Evaluation Metrics"),
+    dcc.Graph(id="evaluation-metrics-dff"),
+
     # Learning Curves
-    html.H2("Learning Curves"),
-    dcc.Graph(id="learning-curves"),
+    html.H2("DFF Learning Curves"),
+    dcc.Graph(id="learning-curves-dff"),
     
     # Confusion Matrix
-    html.H2("Confusion Matrix"),
-    dcc.Graph(id="confusion-matrix"),
+    html.H2("DFF Confusion Matrix"),
+    dcc.Graph(id="confusion-matrix-dff"),
 
 ])
 
@@ -205,25 +208,36 @@ def update_plot(c_position):
 
 
 @app.callback(
-    [Output("learning-curves", "figure"),
-    Output("confusion-matrix", "figure")],
-    [Input("learning-curves", "id")]  # A dummy input to trigger the callback once
+    [Output("evaluation-metrics-dff", "figure"),
+    Output("learning-curves-dff", "figure"),
+    Output("confusion-matrix-dff", "figure")],
+    [Input("learning-curves-dff", "id")]  # A dummy input to trigger the callback once
 )
 def update_graphs(_):
+
     # Load training history
     with open(HISTORY_PATH, 'r') as f:
         history = json.load(f)
-
     # Load evaluation metrics
     with open(EVAL_PATH, 'r') as f:
         evaluation = json.load(f)
     conf_matrix = np.array(evaluation["confusion_matrix"])
+    classification_report = evaluation["classification_report"]
+
+    # Calculate accuracy from the confusion matrix
+    accuracy = calculate_accuracy(conf_matrix)
+
+    # Extract weighted averages for precision, recall, and F1-score
+    precision = classification_report["weighted avg"]["precision"]
+    recall = classification_report["weighted avg"]["recall"]
+    f1 = classification_report["weighted avg"]["f1-score"]
 
     # Generate visualizations
-    learning_curves = create_learning_curves(history)
-    confusion_matrix_fig = create_confusion_matrix(conf_matrix)
+    evaluation_metrics_dff = evaluation_metrics(accuracy, precision, recall, f1)
+    learning_curves_fig_dff = learning_curves_dff(history)
+    confusion_matrix_fig_dff = confusion_matrix_dff(conf_matrix)
     
-    return learning_curves, confusion_matrix_fig
+    return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff
 
 # Run the Dash app
 if __name__ == '__main__':
