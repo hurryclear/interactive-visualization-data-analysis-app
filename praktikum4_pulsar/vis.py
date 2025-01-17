@@ -135,20 +135,47 @@ app.layout = html.Div([
 
     html.H1("Deep Feedforward Neural Network Visualization"),
 
-    html.H2("DFF Evaluation Metrics"),
-    dcc.Graph(id="evaluation-metrics-dff"),
+    # Left column for DFF evaluation
+    html.Div([
+        html.H2("DFF Evaluation Metrics"),
+        dcc.Graph(id="evaluation-metrics-dff", style={"height": "500px"}),  # Adjust height to fit well in the column
 
-    # Learning Curves
-    html.H2("DFF Learning Curves"),
-    dcc.Graph(id="learning-curves-dff"),
-    
-    # Confusion Matrix
-    html.H2("DFF Confusion Matrix"),
-    dcc.Graph(id="confusion-matrix-dff"),
+        html.H2("DFF Learning Curves"),
+        dcc.Graph(id="learning-curves-dff", style={"height": "500px"}),
 
-    # Topology
-    html.H2("DFF Topology"),
-    html.Img(id="topology-dff"),
+        html.H2("DFF Confusion Matrix"),
+        dcc.Graph(id="confusion-matrix-dff", style={"width":"200", "height": "500px"}),
+
+        # Topology
+        html.H2("DFF Topology"),
+        html.Img(id="topology-dff"),
+    ], style={
+        "width": "48%",       # Occupies 48% of the width
+        "display": "inline-block",  # Side-by-side layout
+        "vertical-align": "top",    # Aligns content to the top
+        "padding-right": "10px"     # Adds spacing to the right
+    }),
+
+    # Right column for ... evaluation
+    # html.Div([
+    #     html.H2("DFF Evaluation Metrics"),
+    #     dcc.Graph(id="evaluation-metrics-dff", style={"height": "500px"}),  # Adjust height to fit well in the column
+
+    #     html.H2("DFF Learning Curves"),
+    #     dcc.Graph(id="learning-curves-dff", style={"height": "500px"}),
+
+    #     html.H2("DFF Confusion Matrix"),
+    #     dcc.Graph(id="confusion-matrix-dff", style={"width":"200", "height": "500px"}),
+
+    #     # Topology
+    #     html.H2("DFF Topology"),
+    #     html.Img(id="topology-dff"),
+    # ], style={
+    #     "width": "48%",       # Occupies 48% of the width
+    #     "display": "inline-block",  # Side-by-side layout
+    #     "vertical-align": "top",    # Aligns content to the top
+    #     "padding-left": "10px"     # Adds spacing to the right
+    # }),
 
     html.H2("DFF Topology"),
     dcc.Graph(id="node-topology-dff"),
@@ -231,9 +258,7 @@ def update_plot(c_position):
 @app.callback(
     [Output("evaluation-metrics-dff", "figure"),
     Output("learning-curves-dff", "figure"),
-    Output("confusion-matrix-dff", "figure"),
-    Output("topology-dff", "src"),
-    Output("node-topology-dff", "figure")],
+    Output("confusion-matrix-dff", "figure")],
     [Input("learning-curves-dff", "id")]  # A dummy input to trigger the callback once
 )
 def update_graphs(_):
@@ -260,6 +285,16 @@ def update_graphs(_):
     learning_curves_fig_dff = learning_curves_dff(history)
     confusion_matrix_fig_dff = confusion_matrix_dff(conf_matrix)
     
+
+    return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff
+
+@app.callback(
+    [Output("topology-dff", "src"),
+    Output("node-topology-dff", "figure")],
+    [Input("learning-curves-dff", "id")]  # A dummy input to trigger the callback once
+)
+def update_graphs(_):
+    
     # Generate and encode topology diagram
     topology_image_path = visualize_topology(MODEL_PATH_DFF)
     with open(topology_image_path, "rb") as img_file:
@@ -267,7 +302,7 @@ def update_graphs(_):
 
     node_link_topology_fig = node_link_topology_with_neuron_weights(MODEL_PATH_DFF)
 
-    return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff, topology_dff, node_link_topology_fig
+    return  topology_dff, node_link_topology_fig
 
 
 
