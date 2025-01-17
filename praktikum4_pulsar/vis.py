@@ -1,17 +1,27 @@
 import os
 import dash
 import json
+import base64
 import numpy as np
 from dash import dcc, html
 from dash.dependencies import Input, Output
 from tensorflow.keras.models import load_model
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
-from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy
+from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy, visualize_topology, node_link_topology, visualize_topology_with_neuron_weights
 
 # File paths for saved artifacts
-MODEL_PATH = "dff_model.h5"
-HISTORY_PATH = "dff_training_history.json"
-EVAL_PATH = "dff_evaluation_metrics.json"
+MODEL_PATH_DFF = "dff_model.h5"
+HISTORY_PATH_DFF = "dff_training_history.json"
+EVAL_PATH_DFF = "dff_evaluation_metrics.json"
+
+def convert_image_to_base64(image_path):
+    """
+    Convert an image file to base64 format for embedding in Dash.
+    """
+    with open(image_path, "rb") as img_file:
+        encoded = base64.b64encode(img_file.read()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
+
 
 # Initialize Dash app
 app = dash.Dash(__name__)
@@ -136,8 +146,16 @@ app.layout = html.Div([
     html.H2("DFF Confusion Matrix"),
     dcc.Graph(id="confusion-matrix-dff"),
 
+    # Topology
+    html.H2("DFF Topology"),
+    html.Img(id="topology-dff"),
+
+    html.H2("DFF Topology"),
+    dcc.Graph(id="node-topology-dff"),
+
 ])
 
+# Linear SVM
 @app.callback(
     [Output('decision-boundary-linear', 'figure'),
     Output('evaluation-metrics-linear', 'figure')],
@@ -154,6 +172,7 @@ def update_plot(c_position):
     evaluation_metrics_linear = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_linear, evaluation_metrics_linear
 
+# Poly SVM
 @app.callback(
     [Output('decision-boundary-poly', 'figure'),
     Output('evaluation-metrics-poly', 'figure')],
@@ -173,6 +192,7 @@ def update_plot(c_position, degree_position):
     evaluation_metrics_poly = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_poly, evaluation_metrics_poly
 
+# RBF SVM
 @app.callback(
     [Output('decision-boundary-rbf', 'figure'),
     Output('evaluation-metrics-rbf', 'figure')],
@@ -192,6 +212,7 @@ def update_plot(c_position, gamma_position):
     evaluation_metrics_rbf = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_rbf, evaluation_metrics_rbf
 
+# Sigmoid SVM
 @app.callback(
     [Output('decision-boundary-sigmoid', 'figure'),
     Output('evaluation-metrics-sigmoid', 'figure')],
@@ -206,20 +227,22 @@ def update_plot(c_position):
     evaluation_metrics_sigmoid = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_sigmoid, evaluation_metrics_sigmoid
 
-
+# DFF
 @app.callback(
     [Output("evaluation-metrics-dff", "figure"),
     Output("learning-curves-dff", "figure"),
-    Output("confusion-matrix-dff", "figure")],
+    Output("confusion-matrix-dff", "figure"),
+    Output("topology-dff", "src"),
+    Output("node-topology-dff", "figure")],
     [Input("learning-curves-dff", "id")]  # A dummy input to trigger the callback once
 )
 def update_graphs(_):
 
     # Load training history
-    with open(HISTORY_PATH, 'r') as f:
+    with open(HISTORY_PATH_DFF, 'r') as f:
         history = json.load(f)
     # Load evaluation metrics
-    with open(EVAL_PATH, 'r') as f:
+    with open(EVAL_PATH_DFF, 'r') as f:
         evaluation = json.load(f)
     conf_matrix = np.array(evaluation["confusion_matrix"])
     classification_report = evaluation["classification_report"]
@@ -237,7 +260,16 @@ def update_graphs(_):
     learning_curves_fig_dff = learning_curves_dff(history)
     confusion_matrix_fig_dff = confusion_matrix_dff(conf_matrix)
     
-    return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff
+    # Generate and encode topology diagram
+    topology_image_path = visualize_topology(MODEL_PATH_DFF)
+    with open(topology_image_path, "rb") as img_file:
+        topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
+
+    node_link_topology_fig = visualize_topology_with_neuron_weights(MODEL_PATH_DFF)
+
+    return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff, topology_dff, node_link_topology_fig
+
+
 
 # Run the Dash app
 if __name__ == '__main__':
