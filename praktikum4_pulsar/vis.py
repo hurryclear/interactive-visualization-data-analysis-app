@@ -1,15 +1,23 @@
 import dash
+import json
+import os
+import numpy as np
 from dash import dcc, html
 from dash.dependencies import Input, Output
+from tensorflow.keras.models import load_model
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
+from dff_model import create_learning_curves, create_confusion_matrix
 
+# File paths for saved artifacts
+MODEL_PATH = "dff_model.h5"
+HISTORY_PATH = "dff_training_history.json"
+EVAL_PATH = "dff_evaluation_metrics.json"
 
 # Initialize Dash app
 app = dash.Dash(__name__)
 
 app.layout = html.Div([
     html.H1("SVM Decision Boundary Visualization"),
-
     html.H2("SVM Kernel: Linear"),
     html.Div([
         # Slider for parameter 'C'
@@ -114,6 +122,17 @@ app.layout = html.Div([
             dcc.Graph(id='evaluation-metrics-sigmoid', style={'flex': '50%'})
         ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'})  # Graphs side by side
     ]),
+
+    html.H1("Deep Feedforward Neural Network Visualization"),
+    
+    # Learning Curves
+    html.H2("Learning Curves"),
+    dcc.Graph(id="learning-curves"),
+    
+    # Confusion Matrix
+    html.H2("Confusion Matrix"),
+    dcc.Graph(id="confusion-matrix"),
+
 ])
 
 @app.callback(
@@ -185,6 +204,26 @@ def update_plot(c_position):
     return decision_boundary_sigmoid, evaluation_metrics_sigmoid
 
 
+@app.callback(
+    [Output("learning-curves", "figure"),
+    Output("confusion-matrix", "figure")],
+    [Input("learning-curves", "id")]  # A dummy input to trigger the callback once
+)
+def update_graphs(_):
+    # Load training history
+    with open(HISTORY_PATH, 'r') as f:
+        history = json.load(f)
+
+    # Load evaluation metrics
+    with open(EVAL_PATH, 'r') as f:
+        evaluation = json.load(f)
+    conf_matrix = np.array(evaluation["confusion_matrix"])
+
+    # Generate visualizations
+    learning_curves = create_learning_curves(history)
+    confusion_matrix_fig = create_confusion_matrix(conf_matrix)
+    
+    return learning_curves, confusion_matrix_fig
 
 # Run the Dash app
 if __name__ == '__main__':
