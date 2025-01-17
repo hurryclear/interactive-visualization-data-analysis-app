@@ -7,7 +7,7 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 from tensorflow.keras.models import load_model
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
-from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy, visualize_topology, node_link_topology, visualize_topology_with_neuron_weights
+from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy, visualize_topology, node_link_topology_with_neuron_weights
 
 # File paths for saved artifacts
 MODEL_PATH_DFF = "dff_model.h5"
@@ -265,7 +265,7 @@ def update_graphs(_):
     with open(topology_image_path, "rb") as img_file:
         topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
 
-    node_link_topology_fig = visualize_topology_with_neuron_weights(MODEL_PATH_DFF)
+    node_link_topology_fig = node_link_topology_with_neuron_weights(MODEL_PATH_DFF)
 
     return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff, topology_dff, node_link_topology_fig
 
