@@ -47,23 +47,31 @@ def train_model(kernel, C, gamma=None, degree=None):
         raise ValueError(f"Unsupported kernel: {kernel}")
 
     # Train the model
-    svc.fit(X_train_pca, y_train)
+    svc.fit(X_train, y_train)
 
     # Create a meshgrid for plotting decision boundaries
     x_min, x_max = X_train_pca[:, 0].min() - 1, X_train_pca[:, 0].max() + 1
     y_min, y_max = X_train_pca[:, 1].min() - 1, X_train_pca[:, 1].max() + 1
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
 
-    # Decision function for plotting decision boundaries
-    Z = svc.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    # # Decision function for plotting decision boundaries
+    # Z = svc.decision_function(np.c_[xx.ravel(), yy.ravel()])
+    # Z = Z.reshape(xx.shape)
+
+    # Transform meshgrid back to original feature space
+    mesh_points = np.c_[xx.ravel(), yy.ravel()]
+    mesh_points_original = pca.inverse_transform(mesh_points)  # Project back to 8D space
+
+    # Decision function for visualization
+    Z = svc.decision_function(mesh_points_original)
     Z = Z.reshape(xx.shape)
 
     return x_min, x_max, y_min, y_max, Z, svc
 
 # 2.2. evaluate the model
-def evaluate_model(svc, X_test_pca, y_test):
+def evaluate_model(svc):
     # Predict the test data
-    y_pred = svc.predict(X_test_pca)
+    y_pred = svc.predict(X_test)
 
     # Calculate the accuracy
     accuracy = (y_pred == y_test).mean()
@@ -301,7 +309,7 @@ def update_plot(c_position):
     c = c_values[int(c_position)]
 
     x_min, x_max, y_min, y_max, Z, svc = train_model("linear", c)
-    accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
+    accuracy, precision, recall, f1 = evaluate_model(svc)
     decision_boundary_linear = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_linear = visua_evaluation(accuracy, precision, recall, f1)
     return decision_boundary_linear, evaluation_metrics_linear
@@ -320,7 +328,7 @@ def update_plot(c_position, degree_position):
     degree = degree_values[int(degree_position)]
 
     x_min, x_max, y_min, y_max, Z, svc = train_model("poly", c, degree=degree) # degree should be changable
-    accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
+    accuracy, precision, recall, f1 = evaluate_model(svc)
     decision_boundary_poly = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_poly = visua_evaluation(accuracy, precision, recall, f1)
     return decision_boundary_poly, evaluation_metrics_poly
@@ -339,7 +347,7 @@ def update_plot(c_position, gamma_position):
     gamma = gamma_values[int(gamma_position)]
 
     x_min, x_max, y_min, y_max, Z, svc = train_model("rbf", c, gamma=gamma) # gamma should be changable
-    accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
+    accuracy, precision, recall, f1 = evaluate_model(svc)
     decision_boundary_rbf = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_rbf = visua_evaluation(accuracy, precision, recall, f1)
     return decision_boundary_rbf, evaluation_metrics_rbf
@@ -353,7 +361,7 @@ def update_plot(c_position):
     c_values = [0.01, 0.1, 1, 5, 10]
     c = c_values[int(c_position)]
     x_min, x_max, y_min, y_max, Z, svc = train_model("sigmoid", c, gamma=2, degree=3)
-    accuracy, precision, recall, f1 = evaluate_model(svc, X_test_pca, y_test)
+    accuracy, precision, recall, f1 = evaluate_model(svc)
     decision_boundary_sigmoid = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_sigmoid = visua_evaluation(accuracy, precision, recall, f1)
     return decision_boundary_sigmoid, evaluation_metrics_sigmoid
