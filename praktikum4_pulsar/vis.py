@@ -7,19 +7,12 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
 from dff_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
-from helper_functions import calculate_accuracy, block_topology, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff
+from helper_functions import calculate_accuracy, block_topology, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, convert_image_to_base64
 
 MODEL1_BLOCK_TOPOLOGY_PATH = "./model1/dff_model_topology.png"
 MODEL2_BLOCK_TOPOLOGY_PATH = "./model2/dff_model_topology.png"
 
-def convert_image_to_base64(image_path):
-    """
-    Convert an image file to base64 format for embedding in Dash.
-    """
-    with open(image_path, "rb") as img_file:
-        encoded = base64.b64encode(img_file.read()).decode("utf-8")
-    return f"data:image/png;base64,{encoded}"
-
+data = pre_data(2)
 
 # Initialize Dash app
 app = dash.Dash(__name__)
@@ -152,7 +145,7 @@ app.layout = html.Div([
 
             # Topology
             html.H2("DFF Topology"),
-            html.Img(id="block-topology-model1"),
+            html.Img(id="block-topology-model1", style={'display': 'block', 'margin-left': 'auto', 'margin-right': 'auto'}),
         ], style={
             "width": "48%",       # Occupies 48% of the width
             "display": "inline-block",  # Side-by-side layout
@@ -174,7 +167,7 @@ app.layout = html.Div([
 
             # Topology
             html.H2("DFF Topology"),
-            html.Img(id="block-topology-model2"),
+            html.Img(id="block-topology-model2", style={'display': 'block', 'margin-left': 'auto', 'margin-right': 'auto'}),
         ], style={
             "width": "48%",       # Occupies 48% of the width
             "display": "inline-block",  # Side-by-side layout
@@ -201,9 +194,9 @@ def update_plot(c_position):
     c_values = [0.01, 0.1, 1, 5, 10]
     c = c_values[int(c_position)]
 
-    x_min, x_max, y_min, y_max, Z, svc = train_model("linear", c)
-    accuracy, precision, recall, f1 = evaluate_model(svc)
-    decision_boundary_linear = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
+    x_min, x_max, y_min, y_max, Z, svc = train_model(data, "linear", c)
+    accuracy, precision, recall, f1 = evaluate_model(data, svc)
+    decision_boundary_linear = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_linear = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_linear, evaluation_metrics_linear
 
@@ -221,9 +214,9 @@ def update_plot(c_position, degree_position):
     c = c_values[int(c_position)]
     degree = degree_values[int(degree_position)]
 
-    x_min, x_max, y_min, y_max, Z, svc = train_model("poly", c, degree=degree) # degree should be changable
-    accuracy, precision, recall, f1 = evaluate_model(svc)
-    decision_boundary_poly = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
+    x_min, x_max, y_min, y_max, Z, svc = train_model(data, "poly", c, degree=degree) # degree should be changable
+    accuracy, precision, recall, f1 = evaluate_model(data, svc)
+    decision_boundary_poly = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_poly = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_poly, evaluation_metrics_poly
 
@@ -241,9 +234,9 @@ def update_plot(c_position, gamma_position):
     c = c_values[int(c_position)]
     gamma = gamma_values[int(gamma_position)]
 
-    x_min, x_max, y_min, y_max, Z, svc = train_model("rbf", c, gamma=gamma) # gamma should be changable
-    accuracy, precision, recall, f1 = evaluate_model(svc)
-    decision_boundary_rbf = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
+    x_min, x_max, y_min, y_max, Z, svc = train_model(data, "rbf", c, gamma=gamma) # gamma should be changable
+    accuracy, precision, recall, f1 = evaluate_model(data, svc)
+    decision_boundary_rbf = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_rbf = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_rbf, evaluation_metrics_rbf
 
@@ -256,9 +249,9 @@ def update_plot(c_position, gamma_position):
 def update_plot(c_position):
     c_values = [0.01, 0.1, 1, 5, 10]
     c = c_values[int(c_position)]
-    x_min, x_max, y_min, y_max, Z, svc = train_model("sigmoid", c, gamma=2, degree=3)
-    accuracy, precision, recall, f1 = evaluate_model(svc)
-    decision_boundary_sigmoid = visua_decision_boundary(x_min, x_max, y_min, y_max, Z)
+    x_min, x_max, y_min, y_max, Z, svc = train_model(data, "sigmoid", c, gamma=2, degree=3)
+    accuracy, precision, recall, f1 = evaluate_model(data, svc)
+    decision_boundary_sigmoid = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
     evaluation_metrics_sigmoid = evaluation_metrics(accuracy, precision, recall, f1)
     return decision_boundary_sigmoid, evaluation_metrics_sigmoid
 

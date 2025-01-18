@@ -3,15 +3,14 @@ from sklearn import svm
 import numpy as np
 import plotly.graph_objects as go
 from sklearn.metrics import precision_score, recall_score, f1_score
-from helper_functions import pre_data
 
 
-# 1. prepare the data (load, clean, split, standardize, pca)
-
-X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca = pre_data(2)
 
 # 2.1 train the model
-def train_model(kernel, C, gamma=None, degree=None): 
+def train_model(data, kernel, C, gamma=None, degree=None): 
+    # Load the data
+    X_train, y_train, X_train_pca, pca = data[0], data[2], data[4], data[6]
+
     # Configure SVC parameters based on kernel type
     if kernel == 'linear':
         svc = svm.SVC(kernel=kernel, C=C)
@@ -43,7 +42,8 @@ def train_model(kernel, C, gamma=None, degree=None):
     return x_min, x_max, y_min, y_max, Z, svc
 
 # 2.2. evaluate the model
-def evaluate_model(svc):
+def evaluate_model(data, svc):
+    X_test, y_test = data[1], data[3]
     # Predict the test data
     y_pred = svc.predict(X_test)
 
@@ -58,7 +58,9 @@ def evaluate_model(svc):
     return accuracy, precision, recall, f1
 
 # 2.3. visualize the decision boundary
-def visua_decision_boundary(x_min, x_max, y_min, y_max, Z):
+def visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z):
+
+    y_train, y_test, X_train_pca, X_test_pca = data[2], data[3], data[4], data[5]
 
     # Create the decision boundary plot
     fig = go.Figure()
