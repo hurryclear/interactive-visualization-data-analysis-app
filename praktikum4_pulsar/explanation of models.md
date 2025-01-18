@@ -1,13 +1,13 @@
 The parameters and architecture of your model define a Deep Feedforward Neural Network (DFF) or Multilayer Perceptron (MLP), designed for binary classification. Here’s an explanation of why these specific parameters and layers were chosen and what kind of neural network this is:
 
-What Kind of ANN Is This?
+# What Kind of ANN Is This?
 1.	Type of ANN:
     - This is a Deep Feedforward Neural Network (a type of MLP), which is:
     - Fully connected: Each neuron in one layer is connected to every neuron in the next layer.
     - Forward-propagating: Signals move only in one direction (input → hidden layers → output).
     - Specifically, it’s designed for binary classification because the output layer has 1 neuron with a sigmoid activation function, producing probabilities between 0 and 1.
 
-Why These Parameters and Layers?
+# Why These Parameters and Layers?
 
 The architecture and parameters were chosen to strike a balance between model complexity, generalization, and the specific requirements of your dataset. Here’s a breakdown:
 
@@ -88,24 +88,24 @@ validation_split=0.2
    - Reserves 20% of the training data for validation during training.
    - Helps monitor the model’s generalization performance.
 
-Why Is This Architecture Suitable for Your Task?
-	1.	Binary Classification:
-	•	The network is designed for binary classification (e.g., predicting 0 or 1), which aligns with your dataset’s target_class.
-	2.	Moderate Complexity:
-	•	The architecture is neither too shallow nor too deep, suitable for datasets of moderate complexity.
-	•	It avoids overfitting on small datasets and underfitting on larger datasets.
-	3.	Regularization:
-	•	Dropout and early stopping prevent the model from overfitting, making it generalize better to unseen data.
-	4.	Non-linearity:
-	•	The ReLU activation captures non-linear patterns in the data, which are common in real-world problems.
-	5.	Efficient Training:
-	•	The Adam optimizer ensures faster convergence, even with noisy or sparse data.
+# Why Is This Architecture Suitable?
+1.	Binary Classification:
+    - The network is designed for binary classification (e.g., predicting 0 or 1), which aligns with your dataset’s target_class.
+2.	Moderate Complexity:
+    - The architecture is neither too shallow nor too deep, suitable for datasets of moderate complexity.
+    - It avoids overfitting on small datasets and underfitting on larger datasets.
+3.	Regularization:
+    - Dropout and early stopping prevent the model from overfitting, making it generalize better to unseen data.
+4.	Non-linearity:
+    - The ReLU activation captures non-linear patterns in the data, which are common in real-world problems.
+5.	Efficient Training:
+    - The Adam optimizer ensures faster convergence, even with noisy or sparse data.
 
-Summary of the Network
-	•	Input Layer: Processes the dataset’s features.
-	•	Hidden Layers: Learn hierarchical patterns from the data.
-	•	Output Layer: Outputs probabilities for binary classification.
-	•	Regularization: Dropout and early stopping improve generalization.
-	•	Optimization: Adam optimizer balances speed and stability.
+# Summary of the Network
+1. Input Layer: Processes the dataset’s features.
+2. Hidden Layers: Learn hierarchical patterns from the data.
+3. Output Layer: Outputs probabilities for binary classification.
+4. Regularization: Dropout and early stopping improve generalization.
+5. Optimization: Adam optimizer balances speed and stability.
 
 This design provides a good balance of power, regularization, and computational efficiency for your binary classification task. Let me know if you’d like a deeper dive into any part!
