@@ -10,11 +10,17 @@ from tensorflow.keras.callbacks import EarlyStopping
 from pre_data import pre_data
 
 # File paths for saved artifacts
-MODEL_PATH_DFF = "./model1/dff_model.h5"
-HISTORY_PATH_DFF = "./model1/dff_training_history.json"
-X_TEST_PATH_DFF = "./model1/dff_X_test.npy"
-Y_TEST_PATH_DFF = "./model1/dff_y_test.npy"
-EVAL_PATH_DFF = "./model1/dff_evaluation_metrics.json"
+MODEL1_PATH = "./model1/dff_model.h5"
+MODEL1_HISTORY_PATH = "./model1/dff_training_history.json"
+MODEL1_X_TEST_PATH = "./model1/dff_X_test.npy"
+MODEL1_Y_TEST_PATH = "./model1/dff_y_test.npy"
+MODEL1_EVAL_PATH = "./model1/dff_evaluation_metrics.json"
+
+MODEL2_PATH = "./model2/dff_model.h5"
+MODEL2_HISTORY_PATH = "./model2/dff_training_history.json"
+MODEL2_X_TEST_PATH = "./model2/dff_X_test.npy"
+MODEL2_Y_TEST_PATH = "./model2/dff_y_test.npy"
+MODEL2_EVAL_PATH = "./model2/dff_evaluation_metrics.json"
 
 # 1. Prepare the data
 X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca = pre_data(2)
@@ -53,17 +59,17 @@ def train_and_save_model1():
         "confusion_matrix": conf_matrix.tolist(),  # Convert numpy array to list for JSON serialization
         "classification_report": class_report
     }
-    with open(EVAL_PATH_DFF, 'w') as f:
+    with open(MODEL1_EVAL_PATH, 'w') as f:
         json.dump(evaluation, f)
 
     # 4. Save the model and related data
-    model.save(MODEL_PATH_DFF)
-    with open(HISTORY_PATH_DFF, 'w') as f:
+    model.save(MODEL1_PATH)
+    with open(MODEL1_HISTORY_PATH, 'w') as f:
         json.dump(history.history, f)
-    np.save(X_TEST_PATH_DFF, X_test)
-    np.save(Y_TEST_PATH_DFF, y_test)
+    np.save(MODEL1_X_TEST_PATH, X_test)
+    np.save(MODEL1_Y_TEST_PATH, y_test)
 
-    print(f"Model, history, and evaluation metrics saved: {MODEL_PATH_DFF}, {HISTORY_PATH_DFF}, {EVAL_PATH_DFF}")
+    print(f"Model, history, and evaluation metrics saved: {MODEL1_PATH}, {MODEL1_HISTORY_PATH}, {MODEL1_EVAL_PATH}")
 
 # Helper functions for visualization
 def calculate_accuracy(confusion_matrix):
