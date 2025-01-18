@@ -1,6 +1,7 @@
 # Helper functions
 import pandas as pd
 import numpy as np
+import base64
 import plotly.graph_objects as go
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras.models import load_model
@@ -114,6 +115,7 @@ def block_topology(model_path, output_file):
     return output_file
 
 def node_link_topology_with_neuron_weights(model_path):
+
     fig = go.Figure()
 
     # Load the model
@@ -230,3 +232,12 @@ def node_link_topology_with_neuron_weights(model_path):
         width=canvas_width + 200  # Add padding for better visualization
     )
     return fig
+
+
+def convert_image_to_base64(image_path):
+    """
+    Convert an image file to base64 format for embedding in Dash.
+    """
+    with open(image_path, "rb") as img_file:
+        encoded = base64.b64encode(img_file.read()).decode("utf-8")
+    return f"data:image/png;base64,{encoded}"
