@@ -22,19 +22,38 @@ app.layout = html.Div([
     html.H1("SVM Decision Boundary Visualization"),
 
     html.Div([
-        html.H2("SVM Kernel: Linear"),
         html.Div([
+            html.H2("SVM Kernel: Linear"),
             # Slider for parameter 'C'
             html.Div([
-                html.Label("Adjust Regularization Parameter C:"),
+                html.Label(
+                    "Adjust Regularization Parameter C:",
+                    style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }
+                ),
                 dcc.Slider(
-                    min=0, max=4,  # Logical range for even spacing
-                    marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
+                    min=0,
+                    max=4,
+                    marks={
+                        0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                    },
                     step=None,  # Restrict slider to only these values
-                    value=3,  # Default value: 1 (logical position 3)
+                    value=3,  # Default value
                     id='c-slider-linear'
                 )
-            ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
+            ], style={
+                'margin-bottom': '2px',
+                'width': '80%',
+                'margin-left': 'auto',
+                'margin-right': 'auto'
+            }),  # Add spacing below the slider
 
             # Container for decision boundary and evaluation metrics
             html.Div([
@@ -43,14 +62,26 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'})  # Graphs side by side
         ]),
 
-        html.H2("SVM Kernel: Poly"),
         html.Div([
+            html.H2("SVM Kernel: Poly"),
             # Slider for parameter 'C'
             html.Div([
-                html.Label("Adjust Regularization Parameter C:"),
+                html.Label(
+                    "Adjust Regularization Parameter C:", 
+                    style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }),
                 dcc.Slider(
                     min=0, max=4,  # Logical range for even spacing
-                    marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
+                    marks={
+                        0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                    },
                     step=None,  # Restrict slider to only these values
                     value=3,  # Default value: 1 (logical position 3)
                     id='c-slider-poly'
@@ -58,10 +89,27 @@ app.layout = html.Div([
             ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
 
             html.Div([
-                html.Label("Adjust Degree:"),
+                html.Label(
+                    "Adjust Degree:",
+                    style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }
+                ),
                 dcc.Slider(
                     min=0, max=8,  # Logical range for even spacing
-                    marks={0: "2", 1: "3", 2: "4", 3: "5", 4: "6", 5: "7", 6: "8", 7: "9", 8: "10"},  # Define degree options
+                    marks={
+                        0: {"label": "2", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "3", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        2: {"label": "4", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "6", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        5: {"label": "7", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        6: {"label": "8", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        7: {"label": "9", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        8: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
+                    },
                     step=None,  # Restrict slider to only these values
                     value=1,  # Default value: 3
                     id='degree-slider-poly'
@@ -75,24 +123,50 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'})  # Graphs side by side
         ]),
 
-        html.H2("SVM Kernel: RBF"),
         html.Div([
+            html.H2("SVM Kernel: RBF"),
             # Slider for parameter 'C'
             html.Div([
-                html.Label("Adjust Regularization Parameter C:"),
+                html.Label(
+                    "Adjust Regularization Parameter C:",
+                    style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }
+                ),
                 dcc.Slider(
                     min=0, max=5,  # Logical range for even spacing
-                    marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
+                    marks={
+                        0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                    },
                     step=None,  # Restrict slider to only these values
                     value=3,  # Default value: 1 (logical position 3)
                     id='c-slider-rbf'
                 )
             ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
             html.Div([
-                html.Label("Adjust Gamma:"),
+                html.Label(
+                    "Adjust Gamma:",
+                    style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }
+                ),
                 dcc.Slider(
                     min=0, max=3,  # Logical range for even spacing
-                    marks={0: "0.1", 1: "1", 2: "5", 3: "10"},
+                    marks={
+                        0: {"label": "0.1", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "1", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        2: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "20", "style": {"font-size": "18px"}},    # Font size for mark 4
+                    },
                     step=None,  # Restrict slider to only these values
                     value=2,  # Default value: 1
                     id='gamma-slider-rbf'
@@ -106,14 +180,34 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'})  # Graphs side by side
         ]),
 
-        html.H2("SVM Kernel: Sigmoid"),
         html.Div([
+            html.H2(
+                "SVM Kernel: Sigmoid",
+                style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }
+            ),
             # Slider for parameter 'C'
             html.Div([
-                html.Label("Adjust Regularization Parameter C:"),
+                html.Label(
+                    "Adjust Regularization Parameter C:",
+                    style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }
+                ),
                 dcc.Slider(
                     min=0, max=4,  # Logical range for even spacing
-                    marks={0: "0.01", 1: "0.1", 2: "1", 3: "5", 4: "10"},
+                    marks={
+                        0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                    },
                     step=None,  # Restrict slider to only these values
                     value=3,  # Default value: 1 (logical position 3)
                     id='c-slider-sigmoid'
