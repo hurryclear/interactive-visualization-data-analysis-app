@@ -19,7 +19,7 @@ EVAL_PATH_DFF = "./model1/dff_evaluation_metrics.json"
 # 1. Prepare the data
 X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca = pre_data(2)
 
-def train_and_save_model():
+def train_and_save_model1():
 
     # 2. Build the network
     model = Sequential([
@@ -243,4 +243,4 @@ def node_link_topology_with_neuron_weights(model_path):
     return fig
 
 if __name__ == "__main__":
-    train_and_save_model()
+    train_and_save_model1()
