@@ -1,11 +1,11 @@
 The parameters and architecture of your model define a Deep Feedforward Neural Network (DFF) or Multilayer Perceptron (MLP), designed for binary classification. Here’s an explanation of why these specific parameters and layers were chosen and what kind of neural network this is:
 
 What Kind of ANN Is This?
-	1.	Type of ANN:
-	•	This is a Deep Feedforward Neural Network (a type of MLP), which is:
-	•	Fully connected: Each neuron in one layer is connected to every neuron in the next layer.
-	•	Forward-propagating: Signals move only in one direction (input → hidden layers → output).
-	•	Specifically, it’s designed for binary classification because the output layer has 1 neuron with a sigmoid activation function, producing probabilities between 0 and 1.
+1.	Type of ANN:
+    - This is a Deep Feedforward Neural Network (a type of MLP), which is:
+    - Fully connected: Each neuron in one layer is connected to every neuron in the next layer.
+    - Forward-propagating: Signals move only in one direction (input → hidden layers → output).
+    - Specifically, it’s designed for binary classification because the output layer has 1 neuron with a sigmoid activation function, producing probabilities between 0 and 1.
 
 Why These Parameters and Layers?
 
@@ -15,8 +15,8 @@ The architecture and parameters were chosen to strike a balance between model co
 
 input_dim=X_train.shape[1]
 
-	•	The input layer size equals the number of features in your dataset. Each feature corresponds to one input neuron.
-	•	Why? This ensures the model can process all the data provided by the dataset.
+- The input layer size equals the number of features in your dataset. Each feature corresponds to one input neuron.
+- Why? This ensures the model can process all the data provided by the dataset.
 
 2. Hidden Layers
 
@@ -38,55 +38,55 @@ Dense(16, activation='relu'),
     - Dropout randomly “drops” 30% of neurons during training to prevent overfitting.
     - Why? It forces the network to be robust by not relying too heavily on specific neurons.
 
-1. Output Layer
+3. Output Layer
 
 Dense(1, activation='sigmoid')
 
-	•	1 neuron:
-	•	The single neuron outputs a probability between 0 and 1, indicating the likelihood of the positive class.
-	•	Sigmoid Activation:
-	•	Converts the raw output (logits) into probabilities for binary classification.
-	•	A threshold (e.g., 0.5) is applied to classify the result as either 0 or 1.
+- 1 neuron:
+    - The single neuron outputs a probability between 0 and 1, indicating the likelihood of the positive class.
+- Sigmoid Activation:
+    - Converts the raw output (logits) into probabilities for binary classification.
+    - A threshold (e.g., 0.5) is applied to classify the result as either 0 or 1.
 
 4. Optimizer
 
 optimizer='adam'
 
-	•	Adam (Adaptive Moment Estimation) optimizer is chosen because:
-	•	It adapts the learning rate during training, making it robust to different types of datasets.
-	•	Combines the benefits of RMSProp and SGD with momentum, which leads to faster convergence.
+   - Adam (Adaptive Moment Estimation) optimizer is chosen because:
+   - It adapts the learning rate during training, making it robust to different types of datasets.
+   - Combines the benefits of RMSProp and SGD with momentum, which leads to faster convergence.
 
 5. Loss Function
 
 loss='binary_crossentropy'
 
-	•	Binary crossentropy is ideal for binary classification tasks.
-	•	It calculates the difference between the predicted probability and the true label.
+   - Binary crossentropy is ideal for binary classification tasks.
+   - It calculates the difference between the predicted probability and the true label.
 
 6. Early Stopping
 
 EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
-	•	Monitors the validation loss during training.
-	•	If the validation loss doesn’t improve for 5 epochs, training stops to prevent overfitting.
-	•	Restores the best weights encountered during training.
+   - Monitors the validation loss during training.
+   - If the validation loss doesn’t improve for 5 epochs, training stops to prevent overfitting.
+   - Restores the best weights encountered during training.
 
 7. Epochs and Batch Size
 
 epochs=50,
 batch_size=32
 
-	•	Epochs (50):
-	•	Limits the training iterations to 50 epochs, balancing training time and overfitting.
-	•	Batch Size (32):
-	•	Updates weights after every 32 samples, which balances computational efficiency and gradient stability.
+   - Epochs (50):
+   - Limits the training iterations to 50 epochs, balancing training time and overfitting.
+   - Batch Size (32):
+   - Updates weights after every 32 samples, which balances computational efficiency and gradient stability.
 
 8. Validation Split
 
 validation_split=0.2
 
-	•	Reserves 20% of the training data for validation during training.
-	•	Helps monitor the model’s generalization performance.
+   - Reserves 20% of the training data for validation during training.
+   - Helps monitor the model’s generalization performance.
 
 Why Is This Architecture Suitable for Your Task?
 	1.	Binary Classification:
