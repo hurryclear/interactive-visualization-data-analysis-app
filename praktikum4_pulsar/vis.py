@@ -5,14 +5,10 @@ import base64
 import numpy as np
 from dash import dcc, html
 from dash.dependencies import Input, Output
-from tensorflow.keras.models import load_model
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
-from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy, block_topology, node_link_topology_with_neuron_weights, MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL1_X_TEST_PATH, MODEL1_Y_TEST_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH, MODEL2_X_TEST_PATH, MODEL2_Y_TEST_PATH
+from dff_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
+from helper_functions import calculate_accuracy, block_topology, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff
 
-# File paths for saved artifacts
-# MODEL_PATH_DFF = "dff_model.h5"
-# HISTORY_PATH_DFF = "dff_training_history.json"
-# EVAL_PATH_DFF = "dff_evaluation_metrics.json"
 MODEL1_BLOCK_TOPOLOGY_PATH = "./model1/dff_model_topology.png"
 MODEL2_BLOCK_TOPOLOGY_PATH = "./model2/dff_model_topology.png"
 
@@ -139,14 +135,12 @@ app.layout = html.Div([
         ]),
     ]),
 
-
-    
-
     html.H1("Deep Feedforward Neural Network Visualization"),
 
     html.Div([
         # Left column for DFF evaluation
         html.Div([
+            html.H1("Model 1"),
             html.H2("DFF Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model1", style={"height": "500px"}),  # Adjust height to fit well in the column
 
@@ -168,6 +162,7 @@ app.layout = html.Div([
 
         # Right column for ... evaluation
         html.Div([
+            html.H1("Model 2"), 
             html.H2("DFF Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model2", style={"height": "500px"}),  # Adjust height to fit well in the column
 

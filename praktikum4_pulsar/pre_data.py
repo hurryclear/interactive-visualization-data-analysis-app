@@ -48,4 +48,4 @@ def pre_data(pca_components=None):
         X_train_pca = None
         X_test_pca = None
 
-    return X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca
+    return [X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca]

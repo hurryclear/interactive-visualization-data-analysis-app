@@ -3,7 +3,7 @@ from sklearn import svm
 import numpy as np
 import plotly.graph_objects as go
 from sklearn.metrics import precision_score, recall_score, f1_score
-from pre_data import pre_data
+from helper_functions import pre_data
 
 
 # 1. prepare the data (load, clean, split, standardize, pca)
