@@ -7,12 +7,13 @@ from dash import dcc, html
 from dash.dependencies import Input, Output
 from tensorflow.keras.models import load_model
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
-from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy, visualize_topology, node_link_topology_with_neuron_weights
+from dff_model import learning_curves_dff, confusion_matrix_dff, calculate_accuracy, block_topology, node_link_topology_with_neuron_weights, MODEL_PATH_DFF, HISTORY_PATH_DFF, EVAL_PATH_DFF
 
 # File paths for saved artifacts
-MODEL_PATH_DFF = "dff_model.h5"
-HISTORY_PATH_DFF = "dff_training_history.json"
-EVAL_PATH_DFF = "dff_evaluation_metrics.json"
+# MODEL_PATH_DFF = "dff_model.h5"
+# HISTORY_PATH_DFF = "dff_training_history.json"
+# EVAL_PATH_DFF = "dff_evaluation_metrics.json"
+BLOCK_TOPOLOGY_PATH = "./model1/dff_model_topology.png"
 
 def convert_image_to_base64(image_path):
     """
@@ -296,13 +297,13 @@ def update_graphs(_):
 def update_graphs(_):
     
     # Generate and encode topology diagram
-    topology_image_path = visualize_topology(MODEL_PATH_DFF)
+    topology_image_path = block_topology(MODEL_PATH_DFF, BLOCK_TOPOLOGY_PATH)
     with open(topology_image_path, "rb") as img_file:
-        topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
+        block_topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
 
     node_link_topology_fig = node_link_topology_with_neuron_weights(MODEL_PATH_DFF)
 
-    return  topology_dff, node_link_topology_fig
+    return  block_topology_dff, node_link_topology_fig
 
 
 

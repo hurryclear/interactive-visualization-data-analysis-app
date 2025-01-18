@@ -10,11 +10,11 @@ from tensorflow.keras.callbacks import EarlyStopping
 from pre_data import pre_data
 
 # File paths for saved artifacts
-MODEL_PATH_DFF = "dff_model.h5"
-HISTORY_PATH_DFF = "dff_training_history.json"
-X_TEST_PATH_DFF = "dff_X_test.npy"
-Y_TEST_PATH_DFF = "dff_y_test.npy"
-EVAL_PATH_DFF = "dff_evaluation_metrics.json"
+MODEL_PATH_DFF = "./model1/dff_model.h5"
+HISTORY_PATH_DFF = "./model1/dff_training_history.json"
+X_TEST_PATH_DFF = "./model1/dff_X_test.npy"
+Y_TEST_PATH_DFF = "./model1/dff_y_test.npy"
+EVAL_PATH_DFF = "./model1/dff_evaluation_metrics.json"
 
 # 1. Prepare the data
 X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca = pre_data(2)
@@ -110,8 +110,7 @@ def confusion_matrix_dff(conf_matrix):
     )
     return fig
 
-
-def visualize_topology(model_path, output_file="dff_model_topology.png"):
+def block_topology(model_path, output_file):
     """
     Visualize the topology of the neural network and save as an image.
     """
