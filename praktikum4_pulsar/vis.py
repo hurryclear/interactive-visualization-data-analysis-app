@@ -6,11 +6,11 @@ import numpy as np
 from dash import dcc, html
 from dash.dependencies import Input, Output
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
-from dff_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
-from helper_functions import calculate_accuracy, block_topology, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, convert_image_to_base64
+from knn_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
+from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, convert_image_to_base64
 
-MODEL1_BLOCK_TOPOLOGY_PATH = "./model1/dff_model_topology.png"
-MODEL2_BLOCK_TOPOLOGY_PATH = "./model2/dff_model_topology.png"
+# MODEL1_BLOCK_TOPOLOGY_PATH = "./model1/dff_model_topology.png"
+# MODEL2_BLOCK_TOPOLOGY_PATH = "./model2/dff_model_topology.png"
 
 data = pre_data(2)
 
@@ -238,15 +238,14 @@ app.layout = html.Div([
             dcc.Graph(id="confusion-matrix-model1", style={"width":"200", "height": "500px"}),
 
             # Topology
-            html.H2("DFF Topology"),
-            html.Img(id="block-topology-model1", style={'display': 'block', 'margin-left': 'auto', 'margin-right': 'auto'}),
+        #     html.H2("DFF Topology"),
+        #     html.Img(id="block-topology-model1", style={'display': 'block', 'margin-left': 'auto', 'margin-right': 'auto'}),
         ], style={
             "width": "48%",       # Occupies 48% of the width
             "display": "inline-block",  # Side-by-side layout
             "vertical-align": "top",    # Aligns content to the top
             "padding-right": "10px"     # Adds spacing to the right
         }),
-
         # Right column for ... evaluation
         html.Div([
             html.H1("Model 2"), 
@@ -260,8 +259,8 @@ app.layout = html.Div([
             dcc.Graph(id="confusion-matrix-model2", style={"width":"200", "height": "500px"}),
 
             # Topology
-            html.H2("DFF Topology"),
-            html.Img(id="block-topology-model2", style={'display': 'block', 'margin-left': 'auto', 'margin-right': 'auto'}),
+        #     html.H2("DFF Topology"),
+        #     html.Img(id="block-topology-model2", style={'display': 'block', 'margin-left': 'auto', 'margin-right': 'auto'}),
         ], style={
             "width": "48%",       # Occupies 48% of the width
             "display": "inline-block",  # Side-by-side layout
@@ -269,10 +268,10 @@ app.layout = html.Div([
             "padding-left": "10px"     # Adds spacing to the right
         }),
 
-        html.H2("DFF Topology"),
+        html.H2("Node Link Topology 1"),
         dcc.Graph(id="node-topology-model1"),
 
-        html.H2("DFF Topology"),
+        html.H2("Node Link Topology 2"),
         dcc.Graph(id="node-topology-model2"),
     ]),
 ])
@@ -384,20 +383,19 @@ def update_graphs(_):
     return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff
 
 @app.callback(
-    [Output("block-topology-model1", "src"),
-    Output("node-topology-model1", "figure")],
+    Output("node-topology-model1", "figure"),
     [Input("learning-curves-model1", "id")]  # A dummy input to trigger the callback once
 )
 def update_graphs(_):
     
     # Generate and encode topology diagram
-    topology_image_path = block_topology(MODEL1_PATH, MODEL1_BLOCK_TOPOLOGY_PATH)
-    with open(topology_image_path, "rb") as img_file:
-        block_topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
+    # topology_image_path = block_topology(MODEL1_PATH, MODEL1_BLOCK_TOPOLOGY_PATH)
+    # with open(topology_image_path, "rb") as img_file:
+    #     block_topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
 
     node_link_topology_fig = node_link_topology_with_neuron_weights(MODEL1_PATH)
 
-    return  block_topology_dff, node_link_topology_fig
+    return  node_link_topology_fig
 
 # Model2
 @app.callback(
@@ -434,20 +432,19 @@ def update_graphs(_):
     return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff
 
 @app.callback(
-    [Output("block-topology-model2", "src"),
-    Output("node-topology-model2", "figure")],
+    Output("node-topology-model2", "figure"),
     [Input("learning-curves-model2", "id")]  # A dummy input to trigger the callback once
 )
 def update_graphs(_):
     
     # Generate and encode topology diagram
-    topology_image_path = block_topology(MODEL2_PATH, MODEL2_BLOCK_TOPOLOGY_PATH)
-    with open(topology_image_path, "rb") as img_file:
-        block_topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
+    # topology_image_path = block_topology(MODEL2_PATH, MODEL2_BLOCK_TOPOLOGY_PATH)
+    # with open(topology_image_path, "rb") as img_file:
+    #     block_topology_dff = "data:image/png;base64," + base64.b64encode(img_file.read()).decode()
 
     node_link_topology_fig = node_link_topology_with_neuron_weights(MODEL2_PATH)
 
-    return  block_topology_dff, node_link_topology_fig
+    return  node_link_topology_fig
 
 
 
