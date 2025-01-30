@@ -2,7 +2,7 @@ from dash.dependencies import Input, Output
 from sklearn import svm
 import numpy as np
 import plotly.graph_objects as go
-from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 
 
 
@@ -48,14 +48,23 @@ def evaluate_model(data, svc):
     y_pred = svc.predict(X_test)
 
     # Calculate the accuracy
-    accuracy = (y_pred == y_test).mean()
+    accuracy_raw = (y_pred == y_test).mean()
+    # Round to 4 decimals
+    accuracy = round(accuracy_raw, 4)
 
     # Calculate the precision, recall, and F1-score
-    precision = precision_score(y_test, y_pred)
-    recall = recall_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    precision_raw = precision_score(y_test, y_pred)
+    recall_raw = recall_score(y_test, y_pred)
+    f1_raw = f1_score(y_test, y_pred)
 
-    return accuracy, precision, recall, f1
+    # Round each to 4 decimals
+    precision = round(precision_raw, 4)
+    recall = round(recall_raw, 4)
+    f1 = round(f1_raw, 4)
+
+    conf_matrix = confusion_matrix(y_test, y_pred)
+
+    return accuracy, precision, recall, f1, conf_matrix
 
 # 2.3. visualize the decision boundary
 def visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z):
@@ -71,11 +80,39 @@ def visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z):
         y=np.linspace(y_min, y_max, 200),
         z=(Z > 0).astype(int),  # Shade the regions based on the decision boundary
         colorscale=[
-            [0, "red"], 
+            [0, "red"],
             [1, "blue"]
         ],  # Two distinct region colors
         opacity=0.1,
         showscale=False
+    ))
+
+    # Add scatter plot for class 0
+    fig.add_trace(go.Scatter(
+        x=X_test_pca[y_test == 0, 0],
+        y=X_test_pca[y_test == 0, 1],
+        mode='markers',
+        marker=dict(
+            color='red',
+            size=10,
+            line=dict(color='black', width=2),
+            symbol='circle-open'
+        ),
+        name='Class 0'
+    ))
+
+    # Add scatter plot for class 1
+    fig.add_trace(go.Scatter(
+        x=X_test_pca[y_test == 1, 0],
+        y=X_test_pca[y_test == 1, 1],
+        mode='markers',
+        marker=dict(
+            color='blue',
+            size=10,
+            line=dict(color='black', width=2),
+            symbol='circle-open'
+        ),
+        name='Class 1'
     ))
 
     # Add decision boundary
@@ -89,23 +126,29 @@ def visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z):
             showlabels=False,
         ),
         line=dict(color="black", width=1.5, dash="solid"),  # Solid black line
-        name="Decision Boundary"
+        name="Decision Boundary",
+        legendrank=1
     ))
 
     # Add dashed lines for the margins (-0.5, 0.5)
-    for margin in [-0.5, 0.5]:
-        fig.add_trace(go.Contour(
-            x=np.linspace(x_min, x_max, 200),
-            y=np.linspace(y_min, y_max, 200),
-            z=Z,
-            contours=dict(
-                value=margin,  # Margin level
-                showlabels=False,
-                type="constraint"
-            ),
-            line=dict(color="black", width=1.5, dash="dash"),
-            name="Margin"
-        ))
+    fig.add_trace(go.Contour(
+        x=np.linspace(x_min, x_max, 200),
+        y=np.linspace(y_min, y_max, 200),
+        z=Z,
+        contours={"value": 0.5, "showlabels": False, "type": "constraint"},
+        line={"color": "black", "width": 1.5, "dash": "dash"},
+        name="Margin",
+        legendrank=2
+    ))
+    fig.add_trace(go.Contour(
+        x=np.linspace(x_min, x_max, 200),
+        y=np.linspace(y_min, y_max, 200),
+        z=Z,
+        contours={"value": -0.5, "showlabels": False, "type": "constraint"},
+        line={"color": "black", "width": 1.5, "dash": "dash"},
+        name="Margin",
+        showlegend=False
+    ))
 
     # Add test data
     fig.add_trace(go.Scatter(
@@ -119,7 +162,8 @@ def visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z):
             line=dict(color='black', width=2),
             symbol='circle-open'
         ),
-        name='Test Data'
+        name='Test Data',
+        showlegend=False
     ))
 
     # Add training data
@@ -158,7 +202,8 @@ def evaluation_metrics(accuracy, precision, recall, f1):
         barmode='group',
         title='Evaluation Metrics',
         yaxis=dict(title='Score', range=[0, 1.1]),  # Adjust range to accommodate text above bars
-        xaxis=dict(title='Metrics')
+        xaxis=dict(title='Metrics'),
+        showlegend=False
     )
     return fig
 

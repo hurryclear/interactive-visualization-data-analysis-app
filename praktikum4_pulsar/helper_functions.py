@@ -4,8 +4,6 @@ import numpy as np
 import base64
 from joblib import load
 import plotly.graph_objects as go
-from tensorflow.keras.utils import plot_model
-# from tensorflow.keras.models import load_model
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -95,7 +93,7 @@ def confusion_matrix_dff(conf_matrix):
         x=["Predicted 0", "Predicted 1"],
         y=["Actual 0", "Actual 1"],
         colorscale="Blues",
-        showscale=True,
+        showscale=False,
         text=conf_matrix,
         texttemplate="%{text}"
     ))
@@ -107,6 +105,117 @@ def confusion_matrix_dff(conf_matrix):
     return fig
 
 
+# def build_line_diagram(evaluations):
+
+#     # 1) Filter out any non-numeric keys in `evaluations`
+#     numeric_keys = []
+#     for k in evaluations.keys():
+#         try:
+#             float(k)  # attempt conversion
+#             numeric_keys.append(k)
+#         except ValueError:
+#             # keys like "accuracy" or "decision_boundary_linear" won't be considered
+#             continue
+
+#     # If no numeric keys, return an empty figure
+#     # if not numeric_keys:
+#     #     return go.Figure()
+
+#     # 2) Sort keys by numeric value
+#     sorted_cs = sorted(float(k) for k in numeric_keys)
+
+#     # 3) Build lists of metrics in ascending order of C
+#     accuracy_vals = []
+#     precision_vals = []
+#     recall_vals = []
+#     f1_vals = []
+
+#     for c_float in sorted_cs:
+#         c_str = str(c_float)  # convert back to string for dictionary lookups
+#         record = evaluations[c_str]
+#         accuracy_vals.append(record["accuracy"])
+#         precision_vals.append(record["precision"])
+#         recall_vals.append(record["recall"])
+#         f1_vals.append(record["f1"])
+
+#     # 4) Create a figure with multiple line traces
+#     fig = go.Figure()
+#     fig.add_trace(go.Scatter(
+#         x=sorted_cs, y=accuracy_vals,
+#         mode='lines+markers',
+#         name='Accuracy'
+#     ))
+#     fig.add_trace(go.Scatter(
+#         x=sorted_cs, y=precision_vals,
+#         mode='lines+markers',
+#         name='Precision'
+#     ))
+#     fig.add_trace(go.Scatter(
+#         x=sorted_cs, y=recall_vals,
+#         mode='lines+markers',
+#         name='Recall'
+#     ))
+#     fig.add_trace(go.Scatter(
+#         x=sorted_cs, y=f1_vals,
+#         mode='lines+markers',
+#         name='F1-Score'
+#     ))
+
+#     # 5) Style the layout
+#     fig.update_layout(
+#         title="Metrics vs. C (All Values)",
+#         xaxis_title="C",
+#         yaxis_title="Score",
+#         legend=dict(x=0, y=1.1, orientation="h")
+#     )
+#     return fig
+
+def build_line_diagram(all_metrics):
+    # Convert to sorted list of C values
+    sorted_cs = sorted(all_metrics.keys())
+    
+    # Extract metrics in order
+    accuracy_vals = []
+    precision_vals = []
+    recall_vals = []
+    f1_vals = []
+
+    for c in sorted_cs:
+        metrics = all_metrics[c]
+        accuracy_vals.append(metrics["accuracy"])
+        precision_vals.append(metrics["precision"])
+        recall_vals.append(metrics["recall"])
+        f1_vals.append(metrics["f1"])
+
+    # Create figure
+    fig = go.Figure()
+    
+    # Helper function to add traces
+    def add_trace(x, y, name):
+        fig.add_trace(go.Scatter(
+            x=x,
+            y=y,
+            mode='lines+markers',
+            name=name,
+            hovertemplate=f"<b>{name}</b><br>C: %{{x}}<br>Value: %{{y:.4f}}<extra></extra>"
+        ))
+    
+    add_trace(sorted_cs, accuracy_vals, 'Accuracy')
+    add_trace(sorted_cs, precision_vals, 'Precision')
+    add_trace(sorted_cs, recall_vals, 'Recall')
+    add_trace(sorted_cs, f1_vals, 'F1-Score')
+
+    # Style layout
+    fig.update_layout(
+        title="",
+        xaxis_title="C Value",
+        yaxis_title="Score",
+        xaxis_type='log',
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        hovermode="x unified"
+    )
+    
+    return fig
 
 def node_link_topology_with_neuron_weights(model_path):
     """
