@@ -20,7 +20,15 @@ app = dash.Dash(__name__)
 
 app.layout = html.Div([
 
-    html.H1("SVM Decision Boundary Visualization"),
+    html.H1(
+        "SVM Decision Boundary Visualization",
+        style={
+            'text-align': 'center',
+            'font-size': '40px',  # Set the font size for the label
+            'font-weight': 'bold',  # Optional: Make it bold
+            'color': '#333'  # Optional: Change the text color
+            }
+    ),
 
     html.Div([
         # linear SVM
@@ -28,7 +36,7 @@ app.layout = html.Div([
             html.H2(
                 "SVM Kernel: Linear",
                 style={
-                        'font-size': '50px',  # Set the font size for the label
+                        'font-size': '30px',  # Set the font size for the label
                         'font-weight': 'bold',  # Optional: Make it bold
                         'color': '#333'  # Optional: Change the text color
                     }
@@ -75,8 +83,12 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Result: When we raise the c value, we can see increase of the evaluation values, but after 0.1 there is no big difference, so we would choose c=0.1 as best parameter, where accurary=0.9792.",
-                    style={'font-size': '30px'}
+                    "Analysis: When we raise the c value, we can see increase of the evaluation values, but after 0.1 there is no big difference, so we would choose c=0.1 as best parameter, where accurary=0.9792.",
+                    style={'font-size': '25px', 'color': 'blue'}
+                ),
+                html.P(
+                    "Result: c=0.1, accurary=0.9792.",
+                    style={'font-size': '25px', 'color': 'blue'}
                 )
             ]),
         ]),
@@ -85,7 +97,7 @@ app.layout = html.Div([
             html.H2(
                 "SVM Kernel: Ploy",
                 style={
-                        'font-size': '50px',  # Set the font size for the label
+                        'font-size': '30px',  # Set the font size for the label
                         'font-weight': 'bold',  # Optional: Make it bold
                         'color': '#333'  # Optional: Change the text color
                     }
@@ -153,8 +165,12 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Result: When we raise the c value, the evaluation values increase (although the accuracy no big difference, but others change greatly), base on that we choose the c value as 10 and when we fix c vlaue and change the degree, we can find the best degree is 3, where accurary=0.9800.",
-                    style={'font-size': '30px'}
+                    "Analysis: When we raise the c value, the evaluation values increase (although the accuracy no big difference, but others change greatly), base on that we choose the c value as 10 and when we fix c vlaue and change the degree, we can find the best degree is 3, where accurary=0.9800.",
+                    style={'font-size': '25px', 'color': 'blue'}
+                ),
+                html.P(
+                    "Result: c=10, degree=3, accurary=0.9800.",
+                    style={'font-size': '25px', 'color': 'blue'}
                 )
             ]),
         ]),
@@ -163,7 +179,7 @@ app.layout = html.Div([
             html.H2(
                 "SVM Kernel: RBF",
                 style={
-                        'font-size': '50px',  # Set the font size for the label
+                        'font-size': '30px',  # Set the font size for the label
                         'font-weight': 'bold',  # Optional: Make it bold
                         'color': '#333'  # Optional: Change the text color
                     }
@@ -227,8 +243,12 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Result: We can find when the c value is 5 we have best evaluation, except precision, but that’s influence is small, so we take c = 5. We fix c = 5 and change gamma and can find the best value is 5. In this case (c=5, gamma=5), we have accuracy=0.9497.",
-                    style={'font-size': '30px'}
+                    "Analysis: We can find when the c value is 5 we have best evaluation, except precision, but that’s influence is small, so we take c = 5. We fix c = 5 and change gamma and can find the best value is 5. In this case (c=5, gamma=5), we have accuracy=0.9497.",
+                    style={'font-size': '25px', 'color': 'blue'}
+                ),
+                html.P(
+                    "Result: c=5, gamma=5, accurary=0.9497.",
+                    style={'font-size': '25px', 'color': 'blue'}
                 )
             ]),
         ]),
@@ -237,7 +257,7 @@ app.layout = html.Div([
             html.H2(
                 "SVM Kernel: Sigmoid",
                 style={
-                        'font-size': '50px',  # Set the font size for the label
+                        'font-size': '30px',  # Set the font size for the label
                         'font-weight': 'bold',  # Optional: Make it bold
                         'color': '#333'  # Optional: Change the text color
                     }
@@ -278,19 +298,49 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Result: When we raise the c value, we can see decrease of accuracy and other values are always too low, we ignore their influnce for choosing c value, so we would choose c=0.01 as best parameter, where accurary=0.8591.",
-                    style={'font-size': '30px'}
+                    "Analysis: When we raise the c value, we can see decrease of accuracy and other values are always too low, we ignore their influnce for choosing c value, so we would choose c=0.01 as best parameter, where accurary=0.8591.",
+                    style={'font-size': '25px', 'color': 'blue'}
+                ),
+                html.P(
+                    "Result: c=0.01, accurary=0.8591.",
+                    style={'font-size': '25px', 'color': 'blue'}
                 )
             ]),
         ]),
     ]),
 
-    html.H1("Deep Feedforward Neural Network Visualization"),
+    html.H1(
+        "Deep Feedforward Neural Network Visualization",
+        style={
+            'text-align': 'center',
+            'font-size': '45px',  # Set the font size for the label
+            'font-weight': 'bold',  # Optional: Make it bold
+            'color': '#333'  # Optional: Change the text color
+            }
+    ),
+    html.Div([
+        html.P(
+            "We choose model 2 to be the better one, which has higher accuracy "
+            "and also other evaluation values are higher. ",
+            style={
+                'font-size': '25px',
+                'color': 'blue'
+            }
+        ),
+        html.P(
+            "Although the model 2 has only 1 hidden layer with 8 neurons, "
+            "considering our dataset, it is enough to get very good results.",
+            style={
+                'font-size': '25px',
+                'color': 'blue'
+            }
+        )
+    ]),
 
     html.Div([
         # Left column for DFF evaluation
         html.Div([
-            html.H1("Model 1"),
+            html.H1("Model 1: 8 Input, 1 Hidden Layer with 2 Neurons, 1 Output"),
             html.H2("DFF Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model1", style={"height": "500px"}),  # Adjust height to fit well in the column
 
@@ -311,7 +361,7 @@ app.layout = html.Div([
         }),
         # Right column for ... evaluation
         html.Div([
-            html.H1("Model 2"), 
+            html.H1("Model 2: 8 Input, 1 Hidden Layer with 8 Neurons, 1 Output"), 
             html.H2("DFF Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model2", style={"height": "500px"}),  # Adjust height to fit well in the column
 
