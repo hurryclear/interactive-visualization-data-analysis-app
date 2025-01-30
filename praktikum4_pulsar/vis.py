@@ -1,17 +1,12 @@
-import os
 import dash
 import json
-import base64
 import numpy as np
 from dash import dcc, html
-import plotly.graph_objects as go
 from dash.dependencies import Input, Output
 from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
 from knn_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
-from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, build_line_diagram, convert_image_to_base64
+from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, build_line_diagram
 
-# MODEL1_BLOCK_TOPOLOGY_PATH = "./model1/dff_model_topology.png"
-# MODEL2_BLOCK_TOPOLOGY_PATH = "./model2/dff_model_topology.png"
 
 data = pre_data(2)
 

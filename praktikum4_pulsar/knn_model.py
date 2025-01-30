@@ -2,7 +2,7 @@ import json
 import numpy as np
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report, confusion_matrix
-from joblib import dump, load
+from joblib import dump
 from helper_functions import pre_data  # Assuming you still have a function to load/prepare data
 
 # File paths for saved artifacts (using joblib instead of .h5)
@@ -50,10 +50,6 @@ def train_and_save_and_evaluate_model1(X_train, X_test, y_train, y_test):
     # 2. Train the model
     model.fit(X_train, y_train)
 
-    # 3. Evaluate the model
-    # scikit-learn MLPClassifier outputs probabilities for each class in predict_proba
-    # For binary classification, predict_proba returns shape (n_samples, 2).
-    # We pick the probability for the positive class (column 1) and threshold at 0.5
     y_probs = model.predict_proba(X_test)[:, 1]
     y_pred = (y_probs > 0.5).astype(int)
 
