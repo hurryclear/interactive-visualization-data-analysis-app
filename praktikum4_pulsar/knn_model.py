@@ -35,7 +35,7 @@ def train_and_save_and_evaluate_model1(X_train, X_test, y_train, y_test):
     #   hidden_layer_sizes=(64,32,16) simulates 3 hidden layers with those neuron counts.
     #   'relu' is used for hidden layers. The final output layer is logistic for binary classification internally.
     model = MLPClassifier(
-        hidden_layer_sizes=(),
+        hidden_layer_sizes=(2,),
         activation='relu',
         solver='adam',
         alpha=0.0001,
