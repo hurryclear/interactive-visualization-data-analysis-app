@@ -6,12 +6,18 @@ from sklearn.metrics import precision_score, recall_score, f1_score, confusion_m
 
 
 
-# 2.1 train the model
-def train_model(data, kernel, C, gamma=None, degree=None): 
+# 2.1 Train the model
+def train_model(data, kernel, C, gamma=None, degree=None):
+    '''
+    Train the SVM model with the given kernel and hyperparameters.
+    return: x_min, x_max, y_min, y_max, Z, svc
+    x_min, x_max, y_min, y_max: The minimum and maximum values for the x and y axes
+    Z: The decision function values for the meshgrid, reshaped to the meshgrid shape, used for plotting the decision boundary
+    '''
     # Load the data
     X_train, y_train, X_train_pca, pca = data[0], data[2], data[4], data[6]
 
-    # Configure SVC parameters based on kernel type
+    # 2.1.1 Configure SVC parameters based on kernel types
     if kernel == 'linear':
         svc = svm.SVC(kernel=kernel, C=C)
     elif kernel in ['rbf', 'poly', 'sigmoid']:
@@ -19,17 +25,14 @@ def train_model(data, kernel, C, gamma=None, degree=None):
     else:
         raise ValueError(f"Unsupported kernel: {kernel}")
 
-    # Train the model
+    # 2.1.2 Train the model
     svc.fit(X_train, y_train)
 
+    # 2.1.3 For Visualization
     # Create a meshgrid for plotting decision boundaries
     x_min, x_max = X_train_pca[:, 0].min() - 1, X_train_pca[:, 0].max() + 1
     y_min, y_max = X_train_pca[:, 1].min() - 1, X_train_pca[:, 1].max() + 1
     xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
-
-    # # Decision function for plotting decision boundaries
-    # Z = svc.decision_function(np.c_[xx.ravel(), yy.ravel()])
-    # Z = Z.reshape(xx.shape)
 
     # Transform meshgrid back to original feature space
     mesh_points = np.c_[xx.ravel(), yy.ravel()]
@@ -62,11 +65,19 @@ def evaluate_model(data, svc):
     recall = round(recall_raw, 4)
     f1 = round(f1_raw, 4)
 
-    conf_matrix = confusion_matrix(y_test, y_pred)
+    '''
+    TN (True Negative): The number of instances correctly predicted as class 0.
+    FP (False Positive): The number of instances incorrectly predicted as class 1 (but are actually class 0).
+    FN (False Negative): The number of instances incorrectly predicted as class 0 (but are actually class 1).
+    TP (True Positive): The number of instances correctly predicted as class 1.
+    For example: [[2156 (TN),119 (FP)],[54 (FN),177 (TP)]]
+    negative class: 0, positive class: 1
+    '''
+    conf_matrix = confusion_matrix(y_test, y_pred) # return [[TN, FP],[FN, TP]]
 
     return accuracy, precision, recall, f1, conf_matrix
 
-# 2.3. visualize the decision boundary
+# 2.3. visualize the decision boundary (comment to be added)
 def visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z):
 
     y_train, y_test, X_train_pca, X_test_pca = data[2], data[3], data[4], data[5]
@@ -206,4 +217,3 @@ def evaluation_metrics(accuracy, precision, recall, f1):
         showlegend=False
     )
     return fig
-

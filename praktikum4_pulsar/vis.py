@@ -8,7 +8,7 @@ from knn_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL
 from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, build_line_diagram
 
 
-data = pre_data(2)
+data = pre_data(2) # pre_data(2) returns (X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca), where pca is the PCA object with 2 components
 
 # Initialize Dash app
 app = dash.Dash(__name__)
@@ -23,6 +23,13 @@ app.layout = html.Div([
             'font-weight': 'bold',  # Optional: Make it bold
             'color': '#333'  # Optional: Change the text color
             }
+    ),
+    html.P(
+        "Best result: SVM Kernel: Ploy, c=10, degree=3, accurary=0.9800.",
+        style={
+            'font-size': '25px',
+            'color': 'blue'
+        }
     ),
 
     html.Div([
@@ -213,16 +220,17 @@ app.layout = html.Div([
                     }
                 ),
                 dcc.Slider(
-                    min=0, max=3,  # Logical range for even spacing
+                    min=0, max=4,  # Logical range for even spacing
                     marks={
                         0: {"label": "0.1", "style": {"font-size": "18px"}},  # Font size for mark 0
-                        1: {"label": "1", "style": {"font-size": "18px"}},   # Font size for mark 1
-                        2: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 2
-                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
-                        4: {"label": "20", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        1: {"label": "0.125", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        2: {"label": "1", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        4: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        5: {"label": "20", "style": {"font-size": "18px"}},    # Font size for mark 4
                     },
                     step=None,  # Restrict slider to only these values
-                    value=2,  # Default value: 1
+                    value=1,  # Default value: 1
                     id='gamma-slider-rbf'
                 )
             ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),
@@ -238,11 +246,11 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Analysis: We can find when the c value is 5 we have best evaluation, except precision, but that’s influence is small, so we take c = 5. We fix c = 5 and change gamma and can find the best value is 5. In this case (c=5, gamma=5), we have accuracy=0.9497.",
+                    "Analysis: We can find when the c value is 5 we have best evaluation, except precision, but that’s influence is small, so we take c = 5. We fix c = 5 and change gamma and can find the best value is 0.125 (1/8 the value of 'auto'). In this case (c=5, gamma=0.125), we have accuracy=0.9808.",
                     style={'font-size': '25px', 'color': 'blue'}
                 ),
                 html.P(
-                    "Result: c=5, gamma=5, accurary=0.9497.",
+                    "Result: c=5, gamma=0.125, accurary=0.9808.",
                     style={'font-size': '25px', 'color': 'blue'}
                 )
             ]),
@@ -305,7 +313,7 @@ app.layout = html.Div([
     ]),
 
     html.H1(
-        "Deep Feedforward Neural Network Visualization",
+        "Neural Network Visualization",
         style={
             'text-align': 'center',
             'font-size': '45px',  # Set the font size for the label
@@ -336,13 +344,13 @@ app.layout = html.Div([
         # Left column for DFF evaluation
         html.Div([
             html.H1("Model 1: 8 Input, 1 Hidden Layer with 2 Neurons, 1 Output"),
-            html.H2("DFF Evaluation Metrics"),
+            html.H2("Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model1", style={"height": "500px"}),  # Adjust height to fit well in the column
 
-            html.H2("DFF Learning Curves"),
+            html.H2("Learning Curves"),
             dcc.Graph(id="learning-curves-model1", style={"height": "500px"}),
 
-            html.H2("DFF Confusion Matrix"),
+            html.H2("Confusion Matrix"),
             dcc.Graph(id="confusion-matrix-model1", style={"width":"200", "height": "500px"}),
 
             # Topology
@@ -357,18 +365,15 @@ app.layout = html.Div([
         # Right column for ... evaluation
         html.Div([
             html.H1("Model 2: 8 Input, 1 Hidden Layer with 8 Neurons, 1 Output"), 
-            html.H2("DFF Evaluation Metrics"),
+            html.H2("Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model2", style={"height": "500px"}),  # Adjust height to fit well in the column
 
-            html.H2("DFF Learning Curves"),
+            html.H2("Learning Curves"),
             dcc.Graph(id="learning-curves-model2", style={"height": "500px"}),
 
-            html.H2("DFF Confusion Matrix"),
+            html.H2("Confusion Matrix"),
             dcc.Graph(id="confusion-matrix-model2", style={"width":"200", "height": "500px"}),
 
-            # Topology
-        #     html.H2("DFF Topology"),
-        #     html.Img(id="block-topology-model2", style={'display': 'block', 'margin-left': 'auto', 'margin-right': 'auto'}),
         ], style={
             "width": "48%",       # Occupies 48% of the width
             "display": "inline-block",  # Side-by-side layout
@@ -462,7 +467,7 @@ def update_plot(c_position, degree_position):
 
     # Pre-calculate metrics for all C values
     for c in c_values:
-        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "poly", c, degree=degree) 
+        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "poly", c, degree=degree, gamma='auto') 
         accuracy, precision, recall, f1, conf_matrix = evaluate_model(data, svc)
         
         # Store metrics with C as float key
@@ -501,17 +506,11 @@ def update_plot(c_position, degree_position):
 )
 def update_plot(c_position, gamma_position):
 
-    # x_min, x_max, y_min, y_max, Z, svc = train_model(data, "rbf", c, gamma=gamma) # gamma should be changable
-    # accuracy, precision, recall, f1, conf_matrix = evaluate_model(data, svc)
-    # decision_boundary_rbf = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
-    # evaluation_metrics_rbf = evaluation_metrics(accuracy, precision, recall, f1)
-    # return decision_boundary_rbf, evaluation_metrics_rbf
-
 
     # Map slider position to actual C values
     c_values = [0.01, 0.1, 1, 5, 10]
     c_choose = c_values[int(c_position)]
-    gamma_values = [0.1, 1, 5, 10]
+    gamma_values = [0.1, 0.125, 1, 5, 10]
     gamma = gamma_values[int(gamma_position)]
 
     # Initialize storage for all evaluations
@@ -575,7 +574,7 @@ def update_plot(c_position):
 
     # Pre-calculate metrics for all C values
     for c in c_values:
-        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "sigmoid", c, gamma=2, degree=3)
+        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "sigmoid", c, gamma='auto', degree=3) # gamma should be changable
         accuracy, precision, recall, f1, conf_matrix = evaluate_model(data, svc)
         
         # Store metrics with C as float key

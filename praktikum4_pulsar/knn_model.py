@@ -25,15 +25,10 @@ MODEL2_EVAL_PATH = "./model2/knn_evaluation_metrics.json"
 data1 = pre_data(2)
 data2 = pre_data(2)
 
-def train_and_save_and_evaluate_model1(X_train, X_test, y_train, y_test):   
-    """
-    Build, train, evaluate, and save a deeper MLP using scikit-learn's MLPClassifier.
-    We approximate the architecture [64 -> 32 -> 16 -> 1 (sigmoid)].
-    """
+def train_and_save_and_evaluate_model1(X_train, X_test, y_train, y_test):
 
     # 1. Build the classifier
-    #   hidden_layer_sizes=(64,32,16) simulates 3 hidden layers with those neuron counts.
-    #   'relu' is used for hidden layers. The final output layer is logistic for binary classification internally.
+    #   'relu' is used for hidden layers. The final output layer is logistic for binary classification
     model = MLPClassifier(
         hidden_layer_sizes=(2,),
         activation='relu',
