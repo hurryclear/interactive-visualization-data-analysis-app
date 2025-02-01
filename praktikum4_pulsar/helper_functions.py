@@ -89,8 +89,8 @@ def learning_curves_dff(history):
 def confusion_matrix_dff(conf_matrix):
     fig = go.Figure(data=go.Heatmap(
         z=conf_matrix,
-        x=["Predicted 0", "Predicted 1"],
-        y=["Actual 0", "Actual 1"],
+        x=["Predicted 0 (Non-pulsar)", "Predicted 1 (Pulsar)"],
+        y=["Actual 0 (Non-pulsar)", "Actual 1 (Pulsar)"],
         colorscale="Blues",
         showscale=False,
         text=conf_matrix,
@@ -150,7 +150,6 @@ def build_line_diagram(all_metrics):
     
     return fig
 
-# def grid_search_params_and_show_accuracy_heatmap(grid_search_results):
 
 
 

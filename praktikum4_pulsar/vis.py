@@ -3,7 +3,7 @@ import json
 import numpy as np
 from dash import dcc, html
 from dash.dependencies import Input, Output
-from svm_model import train_model, evaluate_model, visua_decision_boundary, evaluation_metrics
+from svm_model import train_model, evaluate_model, evaluation_metrics, vis_boundary
 from knn_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
 from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, build_line_diagram
 
@@ -426,7 +426,7 @@ def update_plot(c_position):
         # Store visualization for selected C
         if c == c_choose:
             evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
+            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
             evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
@@ -481,7 +481,7 @@ def update_plot(c_position, degree_position):
         # Store visualization for selected C
         if c == c_choose:
             evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
+            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
             evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
@@ -537,7 +537,7 @@ def update_plot(c_position, gamma_position):
         # Store visualization for selected C
         if c == c_choose:
             evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
+            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
             evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
@@ -588,7 +588,7 @@ def update_plot(c_position):
         # Store visualization for selected C
         if c == c_choose:
             evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = visua_decision_boundary(data, x_min, x_max, y_min, y_max, Z)
+            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
             evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
