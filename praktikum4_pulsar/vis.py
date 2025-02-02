@@ -3,9 +3,9 @@ import json
 import numpy as np
 from dash import dcc, html
 from dash.dependencies import Input, Output
-from svm_model import train_model, evaluate_model, evaluation_metrics, vis_boundary
+from svm_model import train_model, svm_evaluate_model, svm_vis_boundary, svm_grid_train_params, svm_params_evaluation, svm_accuracy_heatmap
 from knn_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
-from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix_dff, pre_data, build_line_diagram
+from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix, pre_data, build_line_diagram, evaluation_metrics
 
 
 data = pre_data(2) # pre_data(2) returns (X_train, X_test, y_train, y_test, X_train_pca, X_test_pca, pca), where pca is the PCA object with 2 components
@@ -165,6 +165,9 @@ app.layout = html.Div([
                 dcc.Graph(id='evaluation-metrics-poly', style={'flex': '50%'}), 
                 dcc.Graph(id='line-diagram-poly', style={'flex': '50%'})
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
+            html.Div([
+                dcc.Graph(id='accuracy-heatmap-poly', style={'flex': '50%'}),
+            ]),
             html.Div([
                 html.P(
                     "Analysis: When we raise the c value, the evaluation values increase (although the accuracy no big difference, but others change greatly), base on that we choose the c value as 10 and when we fix c vlaue and change the degree, we can find the best degree is 3, where accurary=0.9800.",
@@ -399,8 +402,8 @@ app.layout = html.Div([
 )
 def update_plot(c_position):
     # Map slider position to actual C values
-    c_values = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_values[int(c_position)]
+    c_range = [0.01, 0.1, 1, 5, 10]
+    c_choose = c_range[int(c_position)]
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -411,9 +414,9 @@ def update_plot(c_position):
     }
 
     # Pre-calculate metrics for all C values
-    for c in c_values:
+    for c in c_range:
         x_min, x_max, y_min, y_max, Z, svc = train_model(data, "linear", c)
-        accuracy, precision, recall, f1, conf_matrix = evaluate_model(data, svc)
+        accuracy, precision, recall, f1, conf_matrix = svm_evaluate_model(data, svc)
         
         # Store metrics with C as float key
         evaluations['all_metrics'][c] = {
@@ -425,8 +428,8 @@ def update_plot(c_position):
         
         # Store visualization for selected C
         if c == c_choose:
-            evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
+            evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
+            evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
             evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
@@ -445,17 +448,19 @@ def update_plot(c_position):
     [Output('decision-boundary-poly', 'figure'),
     Output('evaluation-metrics-poly', 'figure'),
     Output('confusion-matrix-poly', 'figure'),
-    Output('line-diagram-poly', 'figure')],
+    Output('line-diagram-poly', 'figure'),
+    Output('accuracy-heatmap-poly', 'figure')],
     [Input('c-slider-poly', 'value'),
     Input('degree-slider-poly', 'value')]
 )
 def update_plot(c_position, degree_position):
 
     # Map slider position to actual C values
-    c_values = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_values[int(c_position)]
-    degree_values = [2, 3, 4, 5, 6, 7, 8, 9, 10]  # Define degree options
-    degree = degree_values[int(degree_position)]
+    c_range = [0.01, 0.1, 1, 5, 10]
+    c_choose = c_range[int(c_position)]
+    degree_range = [2, 3, 4, 5, 6, 7, 8, 9, 10]  # Define degree options
+    degree_choose = degree_range[int(degree_position)]
+    gamma_range = [0.01, 0.1, 1, 10]
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -465,24 +470,23 @@ def update_plot(c_position, degree_position):
         'current_metrics': None
     }
 
-    # Pre-calculate metrics for all C values
-    for c in c_values:
-        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "poly", c, degree=degree, gamma='auto') 
-        accuracy, precision, recall, f1, conf_matrix = evaluate_model(data, svc)
-        
-        # Store metrics with C as float key
-        evaluations['all_metrics'][c] = {
+    models_and_params_poly = svm_grid_train_params(data, 'poly', c_range, gamma_range, degree_range)
+    evaluation_metrics_poly = svm_params_evaluation(models_and_params_poly, data)
+    accuracy_heatmap_poly = svm_accuracy_heatmap(evaluation_metrics_poly, param_x="c", param_y="degree")
+    match_models_and_params_poly_tuple = [entry for entry in models_and_params_poly if entry[1] == c_choose and entry[3] == degree_choose]
+    _, _, _, _, svc = match_models_and_params_poly_tuple[0]
+    match_evaluation_metrics_poly_tuple = [entry for entry in evaluation_metrics_poly if entry[0] == c_choose and entry[2] == degree_choose]
+    _, _, _, accuracy, precision, recall, f1, conf_matrix = match_evaluation_metrics_poly_tuple[0]
+
+    evaluations['all_metrics'][c_choose] = {
             "accuracy": accuracy,
             "precision": precision,
             "recall": recall,
             "f1": f1
         }
-        
-        # Store visualization for selected C
-        if c == c_choose:
-            evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
-            evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
+    evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
+    evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
+    evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
     line_diagram_fig = build_line_diagram(evaluations['all_metrics'])
@@ -491,7 +495,8 @@ def update_plot(c_position, degree_position):
         evaluations['current_decision_boundary'],
         evaluations['current_metrics'],
         evaluations['conf_matrix'],
-        line_diagram_fig
+        line_diagram_fig,
+        accuracy_heatmap_poly
     )
     
 
@@ -508,8 +513,8 @@ def update_plot(c_position, gamma_position):
 
 
     # Map slider position to actual C values
-    c_values = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_values[int(c_position)]
+    c_range = [0.01, 0.1, 1, 5, 10]
+    c_choose = c_range[int(c_position)]
     gamma_values = [0.1, 0.125, 1, 5, 10]
     gamma = gamma_values[int(gamma_position)]
 
@@ -522,9 +527,9 @@ def update_plot(c_position, gamma_position):
     }
 
     # Pre-calculate metrics for all C values
-    for c in c_values:
+    for c in c_range:
         x_min, x_max, y_min, y_max, Z, svc = train_model(data, "rbf", c, gamma=gamma) # 
-        accuracy, precision, recall, f1, conf_matrix = evaluate_model(data, svc)
+        accuracy, precision, recall, f1, conf_matrix = svm_evaluate_model(data, svc)
         
         # Store metrics with C as float key
         evaluations['all_metrics'][c] = {
@@ -536,8 +541,8 @@ def update_plot(c_position, gamma_position):
         
         # Store visualization for selected C
         if c == c_choose:
-            evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
+            evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
+            evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
             evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
@@ -561,8 +566,8 @@ def update_plot(c_position, gamma_position):
 )
 def update_plot(c_position):
 
-    c_values = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_values[int(c_position)]
+    c_range = [0.01, 0.1, 1, 5, 10]
+    c_choose = c_range[int(c_position)]
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -573,9 +578,9 @@ def update_plot(c_position):
     }
 
     # Pre-calculate metrics for all C values
-    for c in c_values:
+    for c in c_range:
         x_min, x_max, y_min, y_max, Z, svc = train_model(data, "sigmoid", c, gamma='auto', degree=3) # gamma should be changable
-        accuracy, precision, recall, f1, conf_matrix = evaluate_model(data, svc)
+        accuracy, precision, recall, f1, conf_matrix = svm_evaluate_model(data, svc)
         
         # Store metrics with C as float key
         evaluations['all_metrics'][c] = {
@@ -587,8 +592,8 @@ def update_plot(c_position):
         
         # Store visualization for selected C
         if c == c_choose:
-            evaluations['conf_matrix'] = confusion_matrix_dff(conf_matrix)
-            evaluations['current_decision_boundary'] = vis_boundary(data, svc)
+            evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
+            evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
             evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
@@ -630,7 +635,7 @@ def update_graphs(_):
     # Generate visualizations
     evaluation_metrics_dff = evaluation_metrics(accuracy, precision, recall, f1)
     learning_curves_fig_dff = learning_curves_dff(history)
-    confusion_matrix_fig_dff = confusion_matrix_dff(conf_matrix)
+    confusion_matrix_fig_dff = confusion_matrix(conf_matrix)
     
 
     return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff
@@ -679,7 +684,7 @@ def update_graphs(_):
     # Generate visualizations
     evaluation_metrics_dff = evaluation_metrics(accuracy, precision, recall, f1)
     learning_curves_fig_dff = learning_curves_dff(history)
-    confusion_matrix_fig_dff = confusion_matrix_dff(conf_matrix)
+    confusion_matrix_fig_dff = confusion_matrix(conf_matrix)
     
 
     return  evaluation_metrics_dff, learning_curves_fig_dff, confusion_matrix_fig_dff

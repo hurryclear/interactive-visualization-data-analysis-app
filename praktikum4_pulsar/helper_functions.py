@@ -86,7 +86,25 @@ def learning_curves_dff(history):
     )
     return fig
 
-def confusion_matrix_dff(conf_matrix):
+def evaluation_metrics(accuracy, precision, recall, f1):
+
+    fig = go.Figure(data=[
+        go.Bar(name='Accuracy', x=['Accuracy'], y=[accuracy], text=[f"{accuracy:.4f}"], textposition='outside'),
+        go.Bar(name='Precision', x=['Precision'], y=[precision], text=[f"{precision:.4f}"], textposition='outside'),
+        go.Bar(name='Recall', x=['Recall'], y=[recall], text=[f"{recall:.4f}"], textposition='outside'),
+        go.Bar(name='F1-Score', x=['F1-Score'], y=[f1], text=[f"{f1:.4f}"], textposition='outside')
+    ])
+    fig.update_layout(
+        barmode='group',
+        title='Evaluation Metrics',
+        yaxis=dict(title='Score', range=[0, 1.1]),  # Adjust range to accommodate text above bars
+        xaxis=dict(title='Metrics'),
+        showlegend=False
+    )
+    return fig
+
+
+def confusion_matrix(conf_matrix):
     fig = go.Figure(data=go.Heatmap(
         z=conf_matrix,
         x=["Predicted 0 (Non-pulsar)", "Predicted 1 (Pulsar)"],
