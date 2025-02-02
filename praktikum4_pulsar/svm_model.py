@@ -284,7 +284,7 @@ def svm_grid_train_params(data, kernel, c_range, gamma_range, degree_range):
                 models_and_params.append(('sigmoid', c, gamma, degree, svc))
         else:
             raise ValueError(f"Unsupported kernel: {kernel}")
-    
+
     return models_and_params
 
 def svm_params_evaluation(models_and_params, data):
