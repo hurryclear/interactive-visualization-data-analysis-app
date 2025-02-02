@@ -114,7 +114,7 @@ app.layout = html.Div([
         # Poly SVM
         html.Div([
             html.H2(
-                "SVM Kernel: Ploy",
+                "SVM Kernel: Poly",
                 style={
                         'font-size': '30px',  # Set the font size for the label
                         'font-weight': 'bold',  # Optional: Make it bold
@@ -131,14 +131,13 @@ app.layout = html.Div([
                         'color': '#333'  # Optional: Change the text color
                     }),
                 dcc.Slider(
-                    min=0, max=5,  # Logical range for even spacing
+                    min=0, max=4,  # Logical range for even spacing
                     marks={
                         0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
                         1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
                         2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
-                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
-                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
-                        5: {"label": "100", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "100", "style": {"font-size": "18px"}},    # Font size for mark 4
                     },
                     step=None,  # Restrict slider to only these values
                     value=4,  # Default value: 1 (logical position 3)
