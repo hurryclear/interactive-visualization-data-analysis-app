@@ -103,7 +103,6 @@ def evaluation_metrics(accuracy, precision, recall, f1):
     )
     return fig
 
-
 def confusion_matrix(conf_matrix):
     fig = go.Figure(data=go.Heatmap(
         z=conf_matrix,
@@ -112,12 +111,20 @@ def confusion_matrix(conf_matrix):
         colorscale="Blues",
         showscale=False,
         text=conf_matrix,
-        texttemplate="%{text}"
+        texttemplate="%{text}",
+        hovertemplate=(
+            "%{x}, %{y}: %{z}<br>"
+            "<extra></extra>"  # Remove the extra hover info
+        )
     ))
     fig.update_layout(
         title="Confusion Matrix",
         xaxis_title="Predicted",
-        yaxis_title="Actual"
+        yaxis_title="Actual",
+        hoverlabel=dict(
+            font_size=17,  # Increase font size for hover text
+            font_family="Arial Bold"  # Optional: Change font
+        )
     )
     return fig
 
@@ -167,10 +174,6 @@ def build_line_diagram(all_metrics):
     )
     
     return fig
-
-
-
-
 
 def node_link_topology_with_neuron_weights(model_path):
     """
@@ -398,11 +401,14 @@ def node_link_topology_with_neuron_weights(model_path):
             font=dict(size=12)
         ),
         hovermode="closest",
-        hoverdistance=30
+        hoverdistance=30,
+        hoverlabel=dict(
+            font_size=17,  # Increase font size for hover text
+            font_family="Arial Bold"  # Optional: Change font
+        )
     )
 
     return fig
-
 
 def convert_image_to_base64(image_path):
     """

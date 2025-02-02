@@ -320,7 +320,62 @@ def svm_params_evaluation(models_and_params, data):
 
     return evaluation_metrics
 
+# def svm_accuracy_heatmap(evaluation_metrics, param_x, param_y):
+
+#     # Extract values from evaluation metrics
+#     c_values = sorted(set(entry[0] for entry in evaluation_metrics))  
+#     gamma_values = sorted(set(entry[1] for entry in evaluation_metrics))  
+#     degree_values = sorted(set(entry[2] for entry in evaluation_metrics))  
+
+#     # Select which parameters to use for the axes
+#     if param_x == "c" and param_y == "gamma":
+#         x_values, y_values = c_values, gamma_values
+#         value_index_x, value_index_y = 0, 1  
+#     elif param_x == "c" and param_y == "degree":
+#         x_values, y_values = c_values, degree_values
+#         value_index_x, value_index_y = 0, 2
+#     else:
+#         raise ValueError("Invalid param_x or param_y. Use 'c', 'gamma', or 'degree'.")
+
+#     # Create accuracy matrix
+#     accuracy_matrix = np.zeros((len(y_values), len(x_values)))
+
+#     for entry in evaluation_metrics:
+#         x_index = x_values.index(entry[value_index_x])
+#         y_index = y_values.index(entry[value_index_y])
+#         accuracy_matrix[y_index, x_index] = entry[3]  
+
+#     # Generate evenly spaced indices for axes
+#     x_labels = [f"X{i+1}" for i in range(len(x_values))]
+#     y_labels = [f"Y{i+1}" for i in range(len(y_values))]
+
+#     fig = go.Figure(data=go.Heatmap(
+
+#         z=accuracy_matrix,
+#         x=x_labels,
+#         y=y_labels,
+#         colorscale="Hot",
+#         colorbar=dict(title="Accuracy"),
+#         hovertemplate=(
+#             f"{param_x.upper()}: {{x}}<br>"
+#             f"{param_y.upper()}: {{y}}<br>"
+#             "Accuracy: %{z:.4f}<br>"
+#             "<extra></extra>"  # Remove the extra hover info
+#         )
+#     ))
+
+#     fig.update_layout(
+#         title=f"SVM Accuracy Heatmap ({param_x.upper()} and {param_y.upper()})",
+#         xaxis_title=param_x.upper(),
+#         yaxis_title=param_y.upper(),
+#         xaxis=dict(tickmode="array", tickvals=list(range(len(x_values))), ticktext=x_values),
+#         yaxis=dict(tickmode="array", tickvals=list(range(len(y_values))), ticktext=y_values),
+#     )
+
+#     return fig
+
 def svm_accuracy_heatmap(evaluation_metrics, param_x, param_y):
+
 
     # Extract values from evaluation metrics
     c_values = sorted(set(entry[0] for entry in evaluation_metrics))  
@@ -340,22 +395,32 @@ def svm_accuracy_heatmap(evaluation_metrics, param_x, param_y):
     # Create accuracy matrix
     accuracy_matrix = np.zeros((len(y_values), len(x_values)))
 
+    # Fill accuracy matrix and store real values in customdata
+    customdata = np.empty((len(y_values), len(x_values), 2), dtype=object)
+
     for entry in evaluation_metrics:
         x_index = x_values.index(entry[value_index_x])
         y_index = y_values.index(entry[value_index_y])
-        accuracy_matrix[y_index, x_index] = entry[3]  
+        accuracy_matrix[y_index, x_index] = entry[3]  # Store accuracy
+        customdata[y_index, x_index] = [entry[value_index_x], entry[value_index_y]]  # Store real (C, gamma) or (C, degree)
 
     # Generate evenly spaced indices for axes
     x_labels = [f"X{i+1}" for i in range(len(x_values))]
     y_labels = [f"Y{i+1}" for i in range(len(y_values))]
 
-    # Create heatmap figure with evenly spaced axes
     fig = go.Figure(data=go.Heatmap(
         z=accuracy_matrix,
         x=x_labels,
         y=y_labels,
         colorscale="Hot",
         colorbar=dict(title="Accuracy"),
+        customdata=customdata,
+        hovertemplate=(
+            f"{param_x.upper()}: %{{customdata[0]}}<br>"
+            f"{param_y.upper()}: %{{customdata[1]}}<br>"
+            "Accuracy: %{z:.4f}<br>"
+            "<extra></extra>"  # Remove the extra hover info
+        )
     ))
 
     fig.update_layout(
@@ -364,6 +429,10 @@ def svm_accuracy_heatmap(evaluation_metrics, param_x, param_y):
         yaxis_title=param_y.upper(),
         xaxis=dict(tickmode="array", tickvals=list(range(len(x_values))), ticktext=x_values),
         yaxis=dict(tickmode="array", tickvals=list(range(len(y_values))), ticktext=y_values),
+        hoverlabel=dict(
+            font_size=18,  # Increase font size for hover text
+            font_family="Arial Bold"  # Optional: Change font
+        )
     )
 
     return fig
@@ -400,6 +469,6 @@ if __name__ == "__main__":
     # models_and_params_rbf = svm_grid_train_params(data, 'rbf', C_range, gamma_range, degree_range)
     # models_and_params_sigmoid = svm_grid_train_params(data, 'sigmoid', C_range, gamma_range, degree_range)
 
-    # models_and_params_poly = load(SVM_SAVE_PATH)
-    # evaluation_metrics_poly = svm_params_evaluation(models_and_params_poly, data)
-    # svm_accuracy_heatmap(evaluation_metrics_poly, param_x="c", param_y="degree").show()
+    models_and_params_rbf = load(SVM_SAVE_PATH_RBF)
+    evaluation_metrics_rbf = svm_params_evaluation(models_and_params_rbf, data)
+    svm_accuracy_heatmap(evaluation_metrics_rbf, param_x="c", param_y="gamma").show()

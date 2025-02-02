@@ -61,8 +61,8 @@ app.layout = html.Div([
                         0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
                         1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
                         2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
-                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
-                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "100", "style": {"font-size": "18px"}},    # Font size for mark 4
                     },
                     step=None,  # Restrict slider to only these values
                     value=1,  # Default value
@@ -93,7 +93,13 @@ app.layout = html.Div([
                     "Result: c=0.1, accurary=0.9792.",
                     style={'font-size': '25px', 'color': 'blue'}
                 )
-            ]),
+            ], style={
+                'border': '2px solid black',  # Black border
+                'padding': '20px',  # Padding inside the rectangle
+                'margin': '20px auto',  # Center the div with margin
+                'width': '80%',  # Width of the rectangle
+                'text-align': 'center'  # Center the text
+            }),
         ]),
         # Poly SVM
         html.Div([
@@ -165,7 +171,7 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 dcc.Graph(id='evaluation-metrics-poly', style={'flex': '50%'}), 
-                dcc.Graph(id='accuracy-heatmap-poly', style={'flex': '50%'})
+                dcc.Graph(id='accuracy-heatmap-poly', style={'flex': '40%'})
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             # html.Div([
             #     dcc.Graph(
@@ -212,13 +218,13 @@ app.layout = html.Div([
                     }
                 ),
                 dcc.Slider(
-                    min=0, max=5,  # Logical range for even spacing
+                    min=0, max=4,  # Logical range for even spacing
                     marks={
                         0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
                         1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
                         2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
-                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
-                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "100", "style": {"font-size": "18px"}},    # Font size for mark 4
                     },
                     step=None,  # Restrict slider to only these values
                     value=3,  # Default value: 1 (logical position 3)
@@ -237,12 +243,11 @@ app.layout = html.Div([
                 dcc.Slider(
                     min=0, max=4,  # Logical range for even spacing
                     marks={
-                        0: {"label": "0.1", "style": {"font-size": "18px"}},  # Font size for mark 0
-                        1: {"label": "0.125", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "0.1", "style": {"font-size": "18px"}},  # Font size for mark 0
                         2: {"label": "1", "style": {"font-size": "18px"}},   # Font size for mark 1
-                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 2
-                        4: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
-                        5: {"label": "20", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        4: {"label": "100", "style": {"font-size": "18px"}},     # Font size for mark 3
                     },
                     step=None,  # Restrict slider to only these values
                     value=1,  # Default value: 1
@@ -257,7 +262,7 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 dcc.Graph(id='evaluation-metrics-rbf', style={'flex': '50%'}), 
-                dcc.Graph(id='line-diagram-rbf', style={'flex': '50%'})
+                dcc.Graph(id='accuracy-heatmap-rbf', style={'flex': '40%'})
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
@@ -296,14 +301,38 @@ app.layout = html.Div([
                         0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
                         1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
                         2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
-                        3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
-                        4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 3
+                        4: {"label": "100", "style": {"font-size": "18px"}},    # Font size for mark 4
                     },
                     step=None,  # Restrict slider to only these values
-                    value=0,  # Default value: 1 (logical position 3)
+                    value=2,  # Default value: 1 (logical position 3)
                     id='c-slider-sigmoid'
                 )
             ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),  # Add spacing below the slider
+
+            html.Div([
+                html.Label(
+                    "Adjust Gamma:",
+                    style={
+                        'font-size': '20px',  # Set the font size for the label
+                        'font-weight': 'bold',  # Optional: Make it bold
+                        'color': '#333'  # Optional: Change the text color
+                    }
+                ),
+                dcc.Slider(
+                    min=0, max=4,  # Logical range for even spacing
+                    marks={
+                        0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        1: {"label": "0.1", "style": {"font-size": "18px"}},  # Font size for mark 0
+                        2: {"label": "1", "style": {"font-size": "18px"}},   # Font size for mark 1
+                        3: {"label": "10", "style": {"font-size": "18px"}},     # Font size for mark 2
+                        4: {"label": "100", "style": {"font-size": "18px"}},     # Font size for mark 3
+                    },
+                    step=None,  # Restrict slider to only these values
+                    value=1,  # Default value: 1
+                    id='gamma-slider-sigmoid'
+                )
+            ], style={'margin-bottom': '2px', 'width': '80%', 'margin-left': 'auto', 'margin-right': 'auto'}),
 
             # Container for decision boundary and evaluation metrics
             html.Div([
@@ -312,7 +341,7 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 dcc.Graph(id='evaluation-metrics-sigmoid', style={'flex': '50%'}), 
-                dcc.Graph(id='line-diagram-sigmoid', style={'flex': '50%'})
+                dcc.Graph(id='accuracy-heatmap-sigmoid', style={'flex': '50%'})
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
@@ -414,8 +443,8 @@ app.layout = html.Div([
 )
 def update_plot(c_position):
     # Map slider position to actual C values
-    c_range = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_range[int(c_position)]
+    c_choose = C_RANGE[int(c_position)]
+
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -425,10 +454,18 @@ def update_plot(c_position):
         'current_metrics': None
     }
 
+    models_and_params_sigmoid = load(SVM_SAVE_PATH_SIGMOID)
+    evaluation_metrics_sigmoid = svm_params_evaluation(models_and_params_sigmoid, data)
+
     # Pre-calculate metrics for all C values
-    for c in c_range:
-        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "linear", c)
-        accuracy, precision, recall, f1, conf_matrix = svm_evaluate_model(data, svc)
+    for c in C_RANGE:
+        # x_min, x_max, y_min, y_max, Z, svc = train_model(data, "linear", c)
+        # accuracy, precision, recall, f1, conf_matrix = svm_evaluate_model(data, svc)
+
+        match_models_and_params_sigmoid_tuple = [entry for entry in models_and_params_sigmoid if entry[1] == c]
+        _, _, _, _, svc = match_models_and_params_sigmoid_tuple[0]
+        match_evaluation_metrics_sigmoid_tuple = [entry for entry in evaluation_metrics_sigmoid if entry[0] == c]
+        _, _, _, accuracy, precision, recall, f1, conf_matrix = match_evaluation_metrics_sigmoid_tuple[0]
         
         # Store metrics with C as float key
         evaluations['all_metrics'][c] = {
@@ -489,18 +526,10 @@ def update_plot(c_position, degree_position):
     match_evaluation_metrics_poly_tuple = [entry for entry in evaluation_metrics_poly if entry[0] == c_choose and entry[2] == degree_choose]
     _, _, _, accuracy, precision, recall, f1, conf_matrix = match_evaluation_metrics_poly_tuple[0]
 
-    # evaluations['all_metrics'][c_choose] = {
-    #         "accuracy": accuracy,
-    #         "precision": precision,
-    #         "recall": recall,
-    #         "f1": f1
-    # }
     evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
     evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
     evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
-    # Build the line diagram using all metrics
-    # line_diagram_fig = build_line_diagram(evaluations['all_metrics'])
 
     return (
         evaluations['current_decision_boundary'],
@@ -515,18 +544,16 @@ def update_plot(c_position, degree_position):
     [Output('decision-boundary-rbf', 'figure'),
     Output('evaluation-metrics-rbf', 'figure'),
     Output('confusion-matrix-rbf', 'figure'),
-    Output('line-diagram-rbf', 'figure')],
+    Output('accuracy-heatmap-rbf', 'figure')],
     [Input('c-slider-rbf', 'value'),
     Input('gamma-slider-rbf', 'value')]
 )
+
 def update_plot(c_position, gamma_position):
 
-
     # Map slider position to actual C values
-    c_range = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_range[int(c_position)]
-    gamma_values = [0.1, 0.125, 1, 5, 10]
-    gamma = gamma_values[int(gamma_position)]
+    c_choose = C_RANGE[int(c_position)]
+    gamma_choose = GAMMA_RANGE[int(gamma_position)]
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -536,48 +563,44 @@ def update_plot(c_position, gamma_position):
         'current_metrics': None
     }
 
-    # Pre-calculate metrics for all C values
-    for c in c_range:
-        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "rbf", c, gamma=gamma) # 
-        accuracy, precision, recall, f1, conf_matrix = svm_evaluate_model(data, svc)
-        
-        # Store metrics with C as float key
-        evaluations['all_metrics'][c] = {
-            "accuracy": accuracy,
-            "precision": precision,
-            "recall": recall,
-            "f1": f1
-        }
-        
-        # Store visualization for selected C
-        if c == c_choose:
-            evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
-            evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
-            evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
+    # models_and_params_poly = svm_grid_train_params(data, 'poly', c_range, gamma_range, degree_range)
+    models_and_params_rbf = load(SVM_SAVE_PATH_RBF)
+    evaluation_metrics_rbf = svm_params_evaluation(models_and_params_rbf, data)
+    accuracy_heatmap_rbf = svm_accuracy_heatmap(evaluation_metrics_rbf, param_x="c", param_y="gamma")
 
-    # Build the line diagram using all metrics
-    line_diagram_fig = build_line_diagram(evaluations['all_metrics'])
+    # Find the matching model and parameters from the trained models
+    match_models_and_params_rbf_tuple = [entry for entry in models_and_params_rbf if entry[1] == c_choose and entry[2] == gamma_choose]
+    _, _, _, _, svc = match_models_and_params_rbf_tuple[0]
+    match_evaluation_metrics_rbf_tuple = [entry for entry in evaluation_metrics_rbf if entry[0] == c_choose and entry[1] == gamma_choose]
+    _, _, _, accuracy, precision, recall, f1, conf_matrix = match_evaluation_metrics_rbf_tuple[0]
+
+    evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
+    evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
+    evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     return (
         evaluations['current_decision_boundary'],
         evaluations['current_metrics'],
         evaluations['conf_matrix'],
-        line_diagram_fig
+        accuracy_heatmap_rbf
     )
-    
+
 
 # Sigmoid SVM
 @app.callback(
     [Output('decision-boundary-sigmoid', 'figure'),
     Output('evaluation-metrics-sigmoid', 'figure'),
     Output('confusion-matrix-sigmoid', 'figure'),
-    Output('line-diagram-sigmoid', 'figure')],
-    [Input('c-slider-sigmoid', 'value')]
+    Output('accuracy-heatmap-sigmoid', 'figure')],
+    [Input('c-slider-sigmoid', 'value'),
+    Input('gamma-slider-sigmoid', 'value')]
 )
-def update_plot(c_position):
 
-    c_range = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_range[int(c_position)]
+def update_plot(c_position, gamma_position):
+
+    # Map slider position to actual C values
+    c_choose = C_RANGE[int(c_position)]
+    gamma_choose = GAMMA_RANGE[int(gamma_position)]
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -587,34 +610,28 @@ def update_plot(c_position):
         'current_metrics': None
     }
 
-    # Pre-calculate metrics for all C values
-    for c in c_range:
-        x_min, x_max, y_min, y_max, Z, svc = train_model(data, "sigmoid", c, gamma='auto', degree=3) # gamma should be changable
-        accuracy, precision, recall, f1, conf_matrix = svm_evaluate_model(data, svc)
-        
-        # Store metrics with C as float key
-        evaluations['all_metrics'][c] = {
-            "accuracy": accuracy,
-            "precision": precision,
-            "recall": recall,
-            "f1": f1
-        }
-        
-        # Store visualization for selected C
-        if c == c_choose:
-            evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
-            evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
-            evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
+    # models_and_params_poly = svm_grid_train_params(data, 'poly', c_range, gamma_range, degree_range)
+    models_and_params_sigmoid = load(SVM_SAVE_PATH_SIGMOID)
+    evaluation_metrics_sigmoid = svm_params_evaluation(models_and_params_sigmoid, data)
+    accuracy_heatmap_sigmoid = svm_accuracy_heatmap(evaluation_metrics_sigmoid, param_x="c", param_y="gamma")
 
-    # Build the line diagram using all metrics
-    line_diagram_fig = build_line_diagram(evaluations['all_metrics'])
+    match_models_and_params_sigmoid_tuple = [entry for entry in models_and_params_sigmoid if entry[1] == c_choose and entry[2] == gamma_choose]
+    # Find the matching model and parameters from the trained models
+    _, _, _, _, svc = match_models_and_params_sigmoid_tuple[0]
+    match_evaluation_metrics_sigmoid_tuple = [entry for entry in evaluation_metrics_sigmoid if entry[0] == c_choose and entry[1] == gamma_choose]
+    _, _, _, accuracy, precision, recall, f1, conf_matrix = match_evaluation_metrics_sigmoid_tuple[0]
+
+    evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
+    evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
+    evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     return (
         evaluations['current_decision_boundary'],
         evaluations['current_metrics'],
         evaluations['conf_matrix'],
-        line_diagram_fig
+        accuracy_heatmap_sigmoid
     )
+
 
 # Model1
 @app.callback(
