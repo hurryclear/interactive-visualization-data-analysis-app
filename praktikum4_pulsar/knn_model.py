@@ -30,11 +30,11 @@ def train_and_save_and_evaluate_model1(X_train, X_test, y_train, y_test):
     # 1. Build the classifier
     #   'relu' is used for hidden layers. The final output layer is logistic for binary classification
     model = MLPClassifier(
-        hidden_layer_sizes=(2,),
-        activation='relu',
+        hidden_layer_sizes=(),
+        activation='logistic',
         solver='adam',
         alpha=0.0001,
-        max_iter=50,             # You can adjust epochs here
+        max_iter=100,             # You can adjust epochs here
         early_stopping=True,       # Mimics early stopping
         n_iter_no_change=5,        # Patience
         validation_fraction=0.2,   # Equivalent to validation_split=0.2
@@ -92,7 +92,7 @@ def train_and_save_and_evaluate_model2(X_train, X_test, y_train, y_test):
         activation='relu',
         solver='adam',
         alpha=0.0001,
-        max_iter=50,
+        max_iter=100,
         early_stopping=True,
         n_iter_no_change=5,
         validation_fraction=0.2,

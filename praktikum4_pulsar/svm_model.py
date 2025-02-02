@@ -51,7 +51,7 @@ def grid_search(kernel, C_range, gamma_range, degree_range):
         % (grid.best_params_, grid.best_score_)
     )
 
-# 2.1 Train the model
+
 def train_model(data, kernel, C, gamma=None, degree=None):
     '''
     Train the SVM model with the given kernel and hyperparameters.
@@ -260,6 +260,7 @@ def svm_vis_boundary(data, svc):
     )
     return fig
 
+# 2.1 Train the model
 def svm_grid_train_params(data, kernel, c_range, gamma_range, degree_range):
     
     X_train, y_train = data[0], data[2]

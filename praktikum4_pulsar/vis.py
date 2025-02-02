@@ -367,27 +367,27 @@ app.layout = html.Div([
     ),
     html.Div([
         html.P(
-            "We choose model 2 to be the better one, which has higher accuracy "
-            "and also other evaluation values are higher. ",
-            style={
-                'font-size': '25px',
-                'color': 'blue'
-            }
+            "Analysis: ",
+            style={'font-size': '25px', 'color': 'blue'}),
+        html.P(
+            "Result: Model1 (without hidden layer) with Accurary=0.9808.",
+            style={'font-size': '25px', 'color': 'blue'}
         ),
         html.P(
-            "Although the model 2 has only 1 hidden layer with 8 neurons, "
-            "considering our dataset, it is enough to get very good results.",
-            style={
-                'font-size': '25px',
-                'color': 'blue'
-            }
+            "Result: Model2 (with 1 hidden layer 8 Neuron) with Accurary=0.9789.",
+            style={'font-size': '25px', 'color': 'blue'}
         )
-    ]),
-
+    ], style={
+        'border': '2px solid black',  # Black border
+        'padding': '20px',  # Padding inside the rectangle
+        'margin': '20px auto',  # Center the div with margin
+        'width': '80%',  # Width of the rectangle
+        'text-align': 'center'  # Center the text
+    }),
     html.Div([
         # Left column for DFF evaluation
         html.Div([
-            html.H1("Model 1: 8 Input, 1 Hidden Layer with 2 Neurons, 1 Output"),
+            html.H1("Model 1: 8 Input, 1 Output, Activation: Logistic"),
             html.H2("Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model1", style={"height": "500px"}),  # Adjust height to fit well in the column
 
@@ -408,7 +408,7 @@ app.layout = html.Div([
         }),
         # Right column for ... evaluation
         html.Div([
-            html.H1("Model 2: 8 Input, 1 Hidden Layer with 8 Neurons, 1 Output"), 
+            html.H1("Model 2: 8 Input, 1 Hidden Layer with 8 Neurons, 1 Output, Activation: ReLU"), 
             html.H2("Evaluation Metrics"),
             dcc.Graph(id="evaluation-metrics-model2", style={"height": "500px"}),  # Adjust height to fit well in the column
 
