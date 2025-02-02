@@ -2,11 +2,16 @@ from dash.dependencies import Input, Output
 from sklearn import svm
 import numpy as np
 import pandas as pd
+from joblib import dump, load
 import plotly.graph_objects as go
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.model_selection import GridSearchCV, StratifiedShuffleSplit
 from helper_functions import pre_data
 
+SVM_SAVE_PATH_LNEAR = "./svm_model/svm_models_linear.joblib"
+SVM_SAVE_PATH_POLY = "./svm_model/svm_models_poly.joblib"
+SVM_SAVE_PATH_RBF = "./svm_model/svm_models_rbf.joblib"
+SVM_SAVE_PATH_sigmoid = "./svm_model/svm_models_sigmoid.joblib"
 
 # 1. grid search for best hyperparameters
 def grid_search(kernel, C_range, gamma_range, degree_range):
@@ -284,6 +289,19 @@ def svm_grid_train_params(data, kernel, c_range, gamma_range, degree_range):
                 models_and_params.append(('sigmoid', c, gamma, degree, svc))
         else:
             raise ValueError(f"Unsupported kernel: {kernel}")
+        
+        # Save the models_and_params to a file if save_path is provided
+        if kernel == 'linear':
+            dump(models_and_params, SVM_SAVE_PATH_LNEAR)
+        elif kernel == 'poly':
+            dump(models_and_params, SVM_SAVE_PATH_POLY)
+        elif kernel == 'rbf':
+            dump(models_and_params, SVM_SAVE_PATH_RBF)
+        elif kernel == 'sigmoid':
+            dump(models_and_params, SVM_SAVE_PATH_sigmoid)
+        else:
+            raise ValueError(f"Unsupported kernel: {kernel}")
+
 
     return models_and_params
 
@@ -353,9 +371,9 @@ if __name__ == "__main__":
     # grid_search('linear')
     # The best parameters are {'C': np.float64(0.021544346900318832), 'kernel': 'linear'} with a score of 0.98
 
-    C_range = [0.01, 0.1, 1, 10]
-    gamma_range = [0.01, 0.1, 1, 10]
-    degree_range = [2, 3, 4, 5]
+    C_range = [0.01, 0.1, 1, 10, 100]
+    gamma_range = [0.01, 0.1, 1, 10, 100]
+    degree_range = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     C_range1 = np.logspace(-2, 2, 12)
     gamma_range1 = np.logspace(-2, 2, 12)
@@ -373,4 +391,11 @@ if __name__ == "__main__":
     # heatmap_fig = svm_accuracy_heatmap(evaluation_metrics_poly, param_x="c", param_y="degree")
     # heatmap_fig.show()
 
-    
+    # models_and_params_linear = svm_grid_train_params(data, 'linear', C_range, gamma_range, degree_range)
+    # models_and_params_poly = svm_grid_train_params(data, 'poly', C_range, gamma_range, degree_range)
+    # models_and_params_rbf = svm_grid_train_params(data, 'rbf', C_range, gamma_range, degree_range)
+    # models_and_params_sigmoid = svm_grid_train_params(data, 'sigmoid', C_range, gamma_range, degree_range)
+
+    # models_and_params_poly = load(SVM_SAVE_PATH)
+    # evaluation_metrics_poly = svm_params_evaluation(models_and_params_poly, data)
+    # svm_accuracy_heatmap(evaluation_metrics_poly, param_x="c", param_y="degree").show()
