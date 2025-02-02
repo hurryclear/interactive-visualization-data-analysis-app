@@ -25,13 +25,27 @@ app.layout = html.Div([
             'color': '#333'  # Optional: Change the text color
             }
     ),
-    html.P(
-        "Best result: SVM Kernel: Ploy, c=10, degree=3, accurary=0.9800.",
-        style={
-            'font-size': '25px',
-            'color': 'blue'
-        }
-    ),
+    
+    html.Div([
+        html.P(
+            "Best result",
+            style={'font-size': '25px', 'color': 'blue'}
+        ),
+        html.P(
+            "SVM kernel: poly, c=100, degree=3",
+            style={'font-size': '25px', 'color': 'blue'}
+        ),
+        html.P(
+            "SVM kernel: rbf, c=100, gamma=0.01",
+            style={'font-size': '25px', 'color': 'blue'}
+        )
+    ], style={
+        'border': '2px solid black',  # Black border
+        'padding': '20px',  # Padding inside the rectangle
+        'margin': '20px auto',  # Center the div with margin
+        'width': '80%',  # Width of the rectangle
+        'text-align': 'center'  # Center the text
+    }),
 
     html.Div([
         # linear SVM
@@ -86,11 +100,7 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Analysis: When we raise the c value, we can see increase of the evaluation values, but after 0.1 there is no big difference, so we would choose c=0.1 as best parameter, where accurary=0.9792.",
-                    style={'font-size': '25px', 'color': 'blue'}
-                ),
-                html.P(
-                    "Result: c=0.1, accurary=0.9792.",
+                    "Result: c=0.1, accurary=0.9769.",
                     style={'font-size': '25px', 'color': 'blue'}
                 )
             ], style={
@@ -173,29 +183,18 @@ app.layout = html.Div([
                 dcc.Graph(id='evaluation-metrics-poly', style={'flex': '50%'}), 
                 dcc.Graph(id='accuracy-heatmap-poly', style={'flex': '40%'})
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
-            # html.Div([
-            #     dcc.Graph(
-            #         id='accuracy-heatmap-poly',
-            #         style={
-            #             'flex': '50%',
-            #             'justify-content': 'center',
-            #             'max-width': '1000px',
-            #             'margin': 'auto',
-            #             'height': '500px',
-            #             'width': '700px'
-            #         }
-            #     ),
-            # ]),
             html.Div([
                 html.P(
-                    "Analysis: When we raise the c value, the evaluation values increase (although the accuracy no big difference, but others change greatly), base on that we choose the c value as 10 and when we fix c vlaue and change the degree, we can find the best degree is 3, where accurary=0.9800.",
-                    style={'font-size': '25px', 'color': 'blue'}
-                ),
-                html.P(
-                    "Result: c=10, degree=3, accurary=0.9800.",
+                    "Result: c=100, degree=3, accurary=0.9808.",
                     style={'font-size': '25px', 'color': 'blue'}
                 )
-            ]),
+            ], style={
+                'border': '2px solid black',  # Black border
+                'padding': '20px',  # Padding inside the rectangle
+                'margin': '20px auto',  # Center the div with margin
+                'width': '80%',  # Width of the rectangle
+                'text-align': 'center'  # Center the text
+            }),
         ]),
         # RBF SVM
         html.Div([
@@ -266,14 +265,16 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Analysis: We can find when the c value is 5 we have best evaluation, except precision, but that’s influence is small, so we take c = 5. We fix c = 5 and change gamma and can find the best value is 0.125 (1/8 the value of 'auto'). In this case (c=5, gamma=0.125), we have accuracy=0.9808.",
-                    style={'font-size': '25px', 'color': 'blue'}
-                ),
-                html.P(
-                    "Result: c=5, gamma=0.125, accurary=0.9808.",
+                    "Result: c=100, gamma=0.01, accurary=0.9808.",
                     style={'font-size': '25px', 'color': 'blue'}
                 )
-            ]),
+            ], style={
+                'border': '2px solid black',  # Black border
+                'padding': '20px',  # Padding inside the rectangle
+                'margin': '20px auto',  # Center the div with margin
+                'width': '80%',  # Width of the rectangle
+                'text-align': 'center'  # Center the text
+            }),
         ]),
         # Sigmoid SVM
         html.Div([
@@ -345,14 +346,16 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 html.P(
-                    "Analysis: When we raise the c value, we can see decrease of accuracy and other values are always too low, we ignore their influnce for choosing c value, so we would choose c=0.01 as best parameter, where accurary=0.8591.",
-                    style={'font-size': '25px', 'color': 'blue'}
-                ),
-                html.P(
-                    "Result: c=0.01, accurary=0.8591.",
+                    "Result: c=1, gamma=0.01, accurary=0.9769.",
                     style={'font-size': '25px', 'color': 'blue'}
                 )
-            ]),
+            ], style={
+                'border': '2px solid black',  # Black border
+                'padding': '20px',  # Padding inside the rectangle
+                'margin': '20px auto',  # Center the div with margin
+                'width': '80%',  # Width of the rectangle
+                'text-align': 'center'  # Center the text
+            }),
         ]),
     ]),
 

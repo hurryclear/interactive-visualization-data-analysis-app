@@ -29,10 +29,6 @@ def grid_search(kernel, C_range, gamma_range, degree_range):
     X = data_cleaned.drop(columns=["target_class"])
     y = data_cleaned["target_class"]
 
-    # C_range = [0.01, 0.1, 1, 10, 100]
-    # gamma_range = [0.01, 0.1, 1, 10, 100]
-    # degree_range = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-
     if kernel == 'linear':
         param_grid = {'C': C_range, 'kernel': [kernel]}
     elif kernel == 'poly':
@@ -50,6 +46,57 @@ def grid_search(kernel, C_range, gamma_range, degree_range):
         "The best parameters are %s with a score of %0.2f"
         % (grid.best_params_, grid.best_score_)
     )
+
+
+# 2.1 Train the model
+def svm_grid_train_params(data, kernel, c_range, gamma_range, degree_range):
+    
+    X_train, y_train = data[0], data[2]
+
+    models_and_params = []
+
+    for c in c_range:
+        if kernel == 'linear':
+            gamma = 'auto'
+            degree = 3
+            svc = svm.SVC(kernel='linear', C=c)
+            svc.fit(X_train, y_train)
+            models_and_params.append(('linear', c, gamma, degree, svc))
+        elif kernel == 'poly':
+            gamma = 'auto'
+            for degree in degree_range:
+                    svc = svm.SVC(kernel='poly', C=c, gamma=gamma, degree=degree)
+                    svc.fit(X_train, y_train)
+                    models_and_params.append(('poly', c, gamma, degree, svc))
+        elif kernel == 'rbf':
+            degree = 3
+            for gamma in gamma_range:
+                svc = svm.SVC(kernel=kernel, C=c, gamma=gamma)
+                svc.fit(X_train, y_train)
+                models_and_params.append(('rbf', c, gamma, degree, svc))
+        elif kernel == 'sigmoid':
+            degree = 3
+            for gamma in gamma_range:
+                svc = svm.SVC(kernel=kernel, C=c, gamma=gamma)
+                svc.fit(X_train, y_train)
+                models_and_params.append(('sigmoid', c, gamma, degree, svc))
+        else:
+            raise ValueError(f"Unsupported kernel: {kernel}")
+        
+        # Save the models_and_params to a file if save_path is provided
+        if kernel == 'linear':
+            dump(models_and_params, SVM_SAVE_PATH_LNEAR)
+        elif kernel == 'poly':
+            dump(models_and_params, SVM_SAVE_PATH_POLY)
+        elif kernel == 'rbf':
+            dump(models_and_params, SVM_SAVE_PATH_RBF)
+        elif kernel == 'sigmoid':
+            dump(models_and_params, SVM_SAVE_PATH_sigmoid)
+        else:
+            raise ValueError(f"Unsupported kernel: {kernel}")
+
+
+    return models_and_params
 
 
 def train_model(data, kernel, C, gamma=None, degree=None):
@@ -260,55 +307,6 @@ def svm_vis_boundary(data, svc):
     )
     return fig
 
-# 2.1 Train the model
-def svm_grid_train_params(data, kernel, c_range, gamma_range, degree_range):
-    
-    X_train, y_train = data[0], data[2]
-
-    models_and_params = []
-
-    for c in c_range:
-        if kernel == 'linear':
-            gamma = 'auto'
-            degree = 3
-            svc = svm.SVC(kernel='linear', C=c)
-            svc.fit(X_train, y_train)
-            models_and_params.append(('linear', c, gamma, degree, svc))
-        elif kernel == 'poly':
-            gamma = 'auto'
-            for degree in degree_range:
-                    svc = svm.SVC(kernel='poly', C=c, gamma=gamma, degree=degree)
-                    svc.fit(X_train, y_train)
-                    models_and_params.append(('poly', c, gamma, degree, svc))
-        elif kernel == 'rbf':
-            degree = 3
-            for gamma in gamma_range:
-                svc = svm.SVC(kernel=kernel, C=c, gamma=gamma)
-                svc.fit(X_train, y_train)
-                models_and_params.append(('rbf', c, gamma, degree, svc))
-        elif kernel == 'sigmoid':
-            degree = 3
-            for gamma in gamma_range:
-                svc = svm.SVC(kernel=kernel, C=c, gamma=gamma)
-                svc.fit(X_train, y_train)
-                models_and_params.append(('sigmoid', c, gamma, degree, svc))
-        else:
-            raise ValueError(f"Unsupported kernel: {kernel}")
-        
-        # Save the models_and_params to a file if save_path is provided
-        if kernel == 'linear':
-            dump(models_and_params, SVM_SAVE_PATH_LNEAR)
-        elif kernel == 'poly':
-            dump(models_and_params, SVM_SAVE_PATH_POLY)
-        elif kernel == 'rbf':
-            dump(models_and_params, SVM_SAVE_PATH_RBF)
-        elif kernel == 'sigmoid':
-            dump(models_and_params, SVM_SAVE_PATH_sigmoid)
-        else:
-            raise ValueError(f"Unsupported kernel: {kernel}")
-
-
-    return models_and_params
 
 def svm_params_evaluation(models_and_params, data):
 
