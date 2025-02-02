@@ -165,21 +165,21 @@ app.layout = html.Div([
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
                 dcc.Graph(id='evaluation-metrics-poly', style={'flex': '50%'}), 
-                dcc.Graph(id='line-diagram-poly', style={'flex': '50%'})
+                dcc.Graph(id='accuracy-heatmap-poly', style={'flex': '50%'})
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
-            html.Div([
-                dcc.Graph(
-                    id='accuracy-heatmap-poly',
-                    style={
-                        'flex': '50%',
-                        'justify-content': 'center',
-                        'max-width': '1000px',
-                        'margin': 'auto',
-                        'height': '500px',
-                        'width': '700px'
-                    }
-                ),
-            ]),
+            # html.Div([
+            #     dcc.Graph(
+            #         id='accuracy-heatmap-poly',
+            #         style={
+            #             'flex': '50%',
+            #             'justify-content': 'center',
+            #             'max-width': '1000px',
+            #             'margin': 'auto',
+            #             'height': '500px',
+            #             'width': '700px'
+            #         }
+            #     ),
+            # ]),
             html.Div([
                 html.P(
                     "Analysis: When we raise the c value, the evaluation values increase (although the accuracy no big difference, but others change greatly), base on that we choose the c value as 10 and when we fix c vlaue and change the degree, we can find the best degree is 3, where accurary=0.9800.",
@@ -460,7 +460,6 @@ def update_plot(c_position):
     [Output('decision-boundary-poly', 'figure'),
     Output('evaluation-metrics-poly', 'figure'),
     Output('confusion-matrix-poly', 'figure'),
-    Output('line-diagram-poly', 'figure'),
     Output('accuracy-heatmap-poly', 'figure')],
     [Input('c-slider-poly', 'value'),
     Input('degree-slider-poly', 'value')]
@@ -468,11 +467,8 @@ def update_plot(c_position):
 def update_plot(c_position, degree_position):
 
     # Map slider position to actual C values
-    # c_range = [0.01, 0.1, 1, 10, 100]
     c_choose = C_RANGE[int(c_position)]
-    # degree_range = [2, 3, 4, 5, 6, 7, 8, 9, 10]  # Define degree options
     degree_choose = DEGREE_RANGE[int(degree_position)]
-    # gamma_range = [0.01, 0.1, 1, 10, 100]
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -486,29 +482,30 @@ def update_plot(c_position, degree_position):
     models_and_params_poly = load(SVM_SAVE_PATH_POLY)
     evaluation_metrics_poly = svm_params_evaluation(models_and_params_poly, data)
     accuracy_heatmap_poly = svm_accuracy_heatmap(evaluation_metrics_poly, param_x="c", param_y="degree")
+
+    # Find the matching model and parameters
     match_models_and_params_poly_tuple = [entry for entry in models_and_params_poly if entry[1] == c_choose and entry[3] == degree_choose]
     _, _, _, _, svc = match_models_and_params_poly_tuple[0]
     match_evaluation_metrics_poly_tuple = [entry for entry in evaluation_metrics_poly if entry[0] == c_choose and entry[2] == degree_choose]
     _, _, _, accuracy, precision, recall, f1, conf_matrix = match_evaluation_metrics_poly_tuple[0]
 
-    evaluations['all_metrics'][c_choose] = {
-            "accuracy": accuracy,
-            "precision": precision,
-            "recall": recall,
-            "f1": f1
-        }
+    # evaluations['all_metrics'][c_choose] = {
+    #         "accuracy": accuracy,
+    #         "precision": precision,
+    #         "recall": recall,
+    #         "f1": f1
+    # }
     evaluations['current_decision_boundary'] = svm_vis_boundary(data, svc)
     evaluations['conf_matrix'] = confusion_matrix(conf_matrix)
     evaluations['current_metrics'] = evaluation_metrics(accuracy, precision, recall, f1)
 
     # Build the line diagram using all metrics
-    line_diagram_fig = build_line_diagram(evaluations['all_metrics'])
+    # line_diagram_fig = build_line_diagram(evaluations['all_metrics'])
 
     return (
         evaluations['current_decision_boundary'],
         evaluations['current_metrics'],
         evaluations['conf_matrix'],
-        line_diagram_fig,
         accuracy_heatmap_poly
     )
     
