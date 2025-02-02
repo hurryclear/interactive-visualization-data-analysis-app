@@ -2,8 +2,9 @@ import dash
 import json
 import numpy as np
 from dash import dcc, html
+from joblib import load
 from dash.dependencies import Input, Output
-from svm_model import train_model, svm_evaluate_model, svm_vis_boundary, svm_grid_train_params, svm_params_evaluation, svm_accuracy_heatmap
+from svm_model import train_model, svm_evaluate_model, svm_vis_boundary, svm_grid_train_params, svm_params_evaluation, svm_accuracy_heatmap, SVM_SAVE_PATH_LNEAR, SVM_SAVE_PATH_POLY, SVM_SAVE_PATH_RBF, SVM_SAVE_PATH_SIGMOID, C_RANGE, GAMMA_RANGE, DEGREE_RANGE
 from knn_model import  MODEL1_EVAL_PATH, MODEL1_HISTORY_PATH, MODEL1_PATH, MODEL2_EVAL_PATH, MODEL2_HISTORY_PATH, MODEL2_PATH
 from helper_functions import calculate_accuracy, node_link_topology_with_neuron_weights, learning_curves_dff, confusion_matrix, pre_data, build_line_diagram, evaluation_metrics
 
@@ -114,13 +115,14 @@ app.layout = html.Div([
                         'color': '#333'  # Optional: Change the text color
                     }),
                 dcc.Slider(
-                    min=0, max=4,  # Logical range for even spacing
+                    min=0, max=5,  # Logical range for even spacing
                     marks={
                         0: {"label": "0.01", "style": {"font-size": "18px"}},  # Font size for mark 0
                         1: {"label": "0.1", "style": {"font-size": "18px"}},   # Font size for mark 1
                         2: {"label": "1", "style": {"font-size": "18px"}},     # Font size for mark 2
                         3: {"label": "5", "style": {"font-size": "18px"}},     # Font size for mark 3
                         4: {"label": "10", "style": {"font-size": "18px"}},    # Font size for mark 4
+                        5: {"label": "100", "style": {"font-size": "18px"}},    # Font size for mark 4
                     },
                     step=None,  # Restrict slider to only these values
                     value=4,  # Default value: 1 (logical position 3)
@@ -166,7 +168,17 @@ app.layout = html.Div([
                 dcc.Graph(id='line-diagram-poly', style={'flex': '50%'})
             ], style={'display': 'flex', 'flex-direction': 'row', 'justify-content': 'center', 'max-width': '1500px', 'margin': 'auto'}),  # Graphs side by side
             html.Div([
-                dcc.Graph(id='accuracy-heatmap-poly', style={'flex': '50%'}),
+                dcc.Graph(
+                    id='accuracy-heatmap-poly',
+                    style={
+                        'flex': '50%',
+                        'justify-content': 'center',
+                        'max-width': '1000px',
+                        'margin': 'auto',
+                        'height': '500px',
+                        'width': '700px'
+                    }
+                ),
             ]),
             html.Div([
                 html.P(
@@ -456,11 +468,11 @@ def update_plot(c_position):
 def update_plot(c_position, degree_position):
 
     # Map slider position to actual C values
-    c_range = [0.01, 0.1, 1, 5, 10]
-    c_choose = c_range[int(c_position)]
-    degree_range = [2, 3, 4, 5, 6, 7, 8, 9, 10]  # Define degree options
-    degree_choose = degree_range[int(degree_position)]
-    gamma_range = [0.01, 0.1, 1, 10]
+    # c_range = [0.01, 0.1, 1, 10, 100]
+    c_choose = C_RANGE[int(c_position)]
+    # degree_range = [2, 3, 4, 5, 6, 7, 8, 9, 10]  # Define degree options
+    degree_choose = DEGREE_RANGE[int(degree_position)]
+    # gamma_range = [0.01, 0.1, 1, 10, 100]
 
     # Initialize storage for all evaluations
     evaluations = {
@@ -470,7 +482,8 @@ def update_plot(c_position, degree_position):
         'current_metrics': None
     }
 
-    models_and_params_poly = svm_grid_train_params(data, 'poly', c_range, gamma_range, degree_range)
+    # models_and_params_poly = svm_grid_train_params(data, 'poly', c_range, gamma_range, degree_range)
+    models_and_params_poly = load(SVM_SAVE_PATH_POLY)
     evaluation_metrics_poly = svm_params_evaluation(models_and_params_poly, data)
     accuracy_heatmap_poly = svm_accuracy_heatmap(evaluation_metrics_poly, param_x="c", param_y="degree")
     match_models_and_params_poly_tuple = [entry for entry in models_and_params_poly if entry[1] == c_choose and entry[3] == degree_choose]

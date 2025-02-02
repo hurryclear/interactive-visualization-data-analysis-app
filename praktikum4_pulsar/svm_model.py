@@ -11,7 +11,11 @@ from helper_functions import pre_data
 SVM_SAVE_PATH_LNEAR = "./svm_model/svm_models_linear.joblib"
 SVM_SAVE_PATH_POLY = "./svm_model/svm_models_poly.joblib"
 SVM_SAVE_PATH_RBF = "./svm_model/svm_models_rbf.joblib"
-SVM_SAVE_PATH_sigmoid = "./svm_model/svm_models_sigmoid.joblib"
+SVM_SAVE_PATH_SIGMOID = "./svm_model/svm_models_sigmoid.joblib"
+
+C_RANGE = [0.01, 0.1, 1, 10, 100]
+GAMMA_RANGE = [0.01, 0.1, 1, 10, 100]
+DEGREE_RANGE = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 # 1. grid search for best hyperparameters
 def grid_search(kernel, C_range, gamma_range, degree_range):
@@ -355,7 +359,7 @@ def svm_accuracy_heatmap(evaluation_metrics, param_x, param_y):
     ))
 
     fig.update_layout(
-        title=f"SVM Accuracy Heatmap ({param_x.upper()} vs {param_y.upper()})",
+        title=f"SVM Accuracy Heatmap ({param_x.upper()} and {param_y.upper()})",
         xaxis_title=param_x.upper(),
         yaxis_title=param_y.upper(),
         xaxis=dict(tickmode="array", tickvals=list(range(len(x_values))), ticktext=x_values),
