@@ -16,6 +16,7 @@ I use plotly to build visualization part and sklearn for machine learning, this 
   - evaluation (cross-validation, bootstraping, confusion matrix)
   - support vector machine
   - artifical neural network
+- Data source: the data was given by the course, I also include them in my repository, if it breaks copyright, I will take them out, please let me know. Thank you!
 
 ## Example
 ![pulsar](svm_ann_pulsar/vis4.png)
