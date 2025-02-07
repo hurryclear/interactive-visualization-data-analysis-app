@@ -1,6 +1,6 @@
 # ML-Data-Visualization
 
-## Originate
+## Origin
 
 I'm currently in fifth semester of my cs bachelor in University Leipzig in Germany. This repository is used to contain the code of the data visualization app (dash) which is one of my courses. This is supposed to be a group work, you should be able to see the contributions somehow. 
 
