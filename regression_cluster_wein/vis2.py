@@ -11,7 +11,7 @@ from sklearn.metrics import r2_score, silhouette_score, davies_bouldin_score, si
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from dash import Dash, dcc, html, Input, Output
-from skimage import measure
+
 
 df = pd.read_csv('wein.csv')
 df = df.dropna()
@@ -397,7 +397,7 @@ def update_clustering(n_clusters):
     return cluster_fig, silhouette_fig, evaluation_fig, scree_fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8080)
 
 
 
