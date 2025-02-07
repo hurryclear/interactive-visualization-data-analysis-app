@@ -7,7 +7,7 @@ I'm currently in fifth semester of my cs bachelor in University Leipzig in Germa
 I use plotly to build visualization part and sklearn for machine learning, this is also requirement of this course.
 
 ## Example
-![pulsar](praktikum4_pulsar/praktikum4.png)
+![pulsar](svm_ann_pulsar/vis4.png)
 
 ## To be updated
 
