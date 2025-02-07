@@ -2,20 +2,19 @@
 import pandas as pd
 import numpy as np
 import base64
+from joblib import load
 import plotly.graph_objects as go
-from tensorflow.keras.utils import plot_model
-from tensorflow.keras.models import load_model
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 def pre_data(pca_components=None):
     """
-    Prepare the dataset: load, clean, split, and preprocess.
+    Prepare the dataset: load, clean, split, standardize, and optionally apply PCA.
 
     Parameters:
-        data_path (str): Path to the dataset.
-        pca_components (int): Number of PCA components for dimensionality reduction. Default is None.
+        pca_components (int): Number of PCA components to use (if any).
 
     Returns:
         X_train (np.array): Preprocessed training features.
@@ -68,13 +67,17 @@ def calculate_accuracy(confusion_matrix):
 def learning_curves_dff(history):
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        y=history['accuracy'], mode='lines+markers', name='Train Accuracy'))
+        y=history['loss_curve'], mode='lines+markers', name='loss_curve'))
     fig.add_trace(go.Scatter(
-        y=history['val_accuracy'], mode='lines+markers', name='Validation Accuracy'))
-    fig.add_trace(go.Scatter(
-        y=history['loss'], mode='lines+markers', name='Train Loss'))
-    fig.add_trace(go.Scatter(
-        y=history['val_loss'], mode='lines+markers', name='Validation Loss'))
+        y=history['validation_scores'], mode='lines+markers', name='validation_scores'))
+    # fig.add_trace(go.Scatter(
+    #     y=history['accuracy'], mode='lines+markers', name='Train Accuracy'))
+    # fig.add_trace(go.Scatter(
+    #     y=history['val_accuracy'], mode='lines+markers', name='Validation Accuracy'))
+    # fig.add_trace(go.Scatter(
+    #     y=history['loss'], mode='lines+markers', name='Train Loss'))
+    # fig.add_trace(go.Scatter(
+    #     y=history['val_loss'], mode='lines+markers', name='Validation Loss'))
     fig.update_layout(
         title="Learning Curves",
         xaxis_title="Epochs",
@@ -83,156 +86,329 @@ def learning_curves_dff(history):
     )
     return fig
 
-def confusion_matrix_dff(conf_matrix):
+def evaluation_metrics(accuracy, precision, recall, f1):
+
+    fig = go.Figure(data=[
+        go.Bar(name='Accuracy', x=['Accuracy'], y=[accuracy], text=[f"{accuracy:.4f}"], textposition='outside'),
+        go.Bar(name='Precision', x=['Precision'], y=[precision], text=[f"{precision:.4f}"], textposition='outside'),
+        go.Bar(name='Recall', x=['Recall'], y=[recall], text=[f"{recall:.4f}"], textposition='outside'),
+        go.Bar(name='F1-Score', x=['F1-Score'], y=[f1], text=[f"{f1:.4f}"], textposition='outside')
+    ])
+    fig.update_layout(
+        barmode='group',
+        title='Evaluation Metrics',
+        yaxis=dict(title='Score', range=[0, 1.1]),  # Adjust range to accommodate text above bars
+        xaxis=dict(title='Metrics'),
+        showlegend=False
+    )
+    return fig
+
+def confusion_matrix(conf_matrix):
     fig = go.Figure(data=go.Heatmap(
         z=conf_matrix,
-        x=["Predicted 0", "Predicted 1"],
-        y=["Actual 0", "Actual 1"],
+        x=["Predicted 0 (Non-pulsar)", "Predicted 1 (Pulsar)"],
+        y=["Actual 0 (Non-pulsar)", "Actual 1 (Pulsar)"],
         colorscale="Blues",
-        showscale=True,
+        showscale=False,
         text=conf_matrix,
-        texttemplate="%{text}"
+        texttemplate="%{text}",
+        hovertemplate=(
+            "%{x}, %{y}: %{z}<br>"
+            "<extra></extra>"  # Remove the extra hover info
+        )
     ))
     fig.update_layout(
         title="Confusion Matrix",
         xaxis_title="Predicted",
-        yaxis_title="Actual"
+        yaxis_title="Actual",
+        hoverlabel=dict(
+            font_size=17,  # Increase font size for hover text
+            font_family="Arial Bold"  # Optional: Change font
+        )
     )
     return fig
 
-def block_topology(model_path, output_file):
-    """
-    Visualize the topology of the neural network and save as an image.
-    """
-    model = load_model(model_path)
-    plot_model(
-        model,
-        to_file=output_file,
-        show_shapes=True,
-        show_layer_names=True,
-        dpi=96
+def build_line_diagram(all_metrics):
+    # Convert to sorted list of C values
+    sorted_cs = sorted(all_metrics.keys())
+    
+    # Extract metrics in order
+    accuracy_vals = []
+    precision_vals = []
+    recall_vals = []
+    f1_vals = []
+
+    for c in sorted_cs:
+        metrics = all_metrics[c]
+        accuracy_vals.append(metrics["accuracy"])
+        precision_vals.append(metrics["precision"])
+        recall_vals.append(metrics["recall"])
+        f1_vals.append(metrics["f1"])
+
+    # Create figure
+    fig = go.Figure()
+    
+    # Helper function to add traces
+    def add_trace(x, y, name):
+        fig.add_trace(go.Scatter(
+            x=x,
+            y=y,
+            mode='lines+markers',
+            name=name,
+            hovertemplate=f"<b>{name}</b><br>C: %{{x}}<br>Value: %{{y:.4f}}<extra></extra>"
+        ))
+    
+    add_trace(sorted_cs, accuracy_vals, 'Accuracy')
+    add_trace(sorted_cs, precision_vals, 'Precision')
+    add_trace(sorted_cs, recall_vals, 'Recall')
+    add_trace(sorted_cs, f1_vals, 'F1-Score')
+
+    # Style layout
+    fig.update_layout(
+        title="",
+        xaxis_title="C Value",
+        yaxis_title="Score",
+        xaxis_type='log',
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        hovermode="x unified"
     )
-    return output_file
+    
+    return fig
 
 def node_link_topology_with_neuron_weights(model_path):
+    """
+    Visualize an sklearn MLPClassifier's topology and weights using Plotly,
+    but with a fixed line width for all connections.
+    """
+
+    # 1. Load model and extract weights
+    model = load(model_path)
+    weights = [w.astype(float) for w in model.coefs_]
+
+    # 2. Determine network architecture
+    layers = [weights[0].shape[0]] + [w.shape[1] for w in weights[:-1]] + [weights[-1].shape[1]]
+    num_layers = len(layers)
+
+    # 3. Visualization parameters
+    canvas_width = 1700
+    canvas_height = 1300
+    margin = 100
+    neuron_radius = 16
+    layer_spacing = (canvas_width // (num_layers - 1)) if num_layers > 1 else 300
+    label_spacing = 20   # Vertical spacing between labels
+    label_offset = 50    # Horizontal distance from neuron to label
 
     fig = go.Figure()
 
-    # Load the model
-    model = load_model(model_path)
+    def get_y_positions(num_nodes):
+        """Calculate vertical positions for neurons."""
+        if num_nodes == 1:
+            return [float(canvas_height / 2)]
+        return np.linspace(margin, canvas_height - margin, num_nodes).astype(float)
 
-    # Get input neurons (from model's input tensor shape)
-    input_neurons = model.input_shape[-1]  # Input shape's last dimension (features)
+    # ========== LEGEND (Positive/Negative, etc.) ========== #
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="markers",
+        marker=dict(size=20, color="blue"),
+        name="Positive Neuron Value",
+        hoverinfo="none"
+    ))
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="markers",
+        marker=dict(size=20, color="red"),
+        name="Negative Neuron Value",
+        hoverinfo="none"
+    ))
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="lines",
+        line=dict(color="gray", width=2),
+        name="Positive Weight",
+        hoverinfo="none"
+    ))
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="lines",
+        line=dict(color="red", width=2),
+        name="Negative Weight",
+        hoverinfo="none"
+    ))
 
-    # Get hidden and output layers
-    hidden_layers = []
-    weights = []  # To store weights for connections
-    for layer in model.layers:
-        if hasattr(layer, "units"):  # Only Dense layers have the 'units' attribute
-            hidden_layers.append(layer.units)
-        if hasattr(layer, "get_weights"):  # Get weights for Dense layers
-            layer_weights = layer.get_weights()
-            if len(layer_weights) > 0:  # First item is the weight matrix
-                weights.append(layer_weights[0])
-
-    # Output neurons (last layer in the hidden_layers list)
-    output_neurons = hidden_layers.pop()
-
-    # Define the layers (input, hidden, output)
-    layers = [input_neurons] + hidden_layers + [output_neurons]
-    num_layers = len(layers)
-    canvas_width = 1800  # Fixed canvas width
-    canvas_height = 2500  # Fixed canvas height
-    neuron_radius = 16  # Radius of the neurons for display
-    layer_spacing = canvas_width // (num_layers - 1)  # Dynamically calculate horizontal spacing
-    # Add nodes for each layer
-    neuron_values = {}  # Store values (e.g., sum of incoming weights) for each neuron
+    # ========== NEURON NODES ========== #
     for layer_idx, num_nodes in enumerate(layers):
-        x_position = layer_idx * layer_spacing
-        # Calculate vertical offset to center neurons in the canvas
-        y_offset = (canvas_height - num_nodes * 50) / 2
-        for node_idx in range(num_nodes):
-            y_position = y_offset + node_idx * 50
+        x = layer_idx * layer_spacing
+        y_positions = get_y_positions(num_nodes)
 
-            if layer_idx == 0:  # Input layer neurons
-                neuron_value = 1.0  # Placeholder value for input neurons
+        for node_idx, y in enumerate(y_positions):
+            # Calculate neuron value (sum of incoming weights)
+            if layer_idx == 0:
+                value = 0.0
             else:
-                # Compute the sum of weights coming into this neuron
-                neuron_value = np.sum(weights[layer_idx - 1][:, node_idx])
+                value = float(np.sum(weights[layer_idx - 1][:, node_idx]))
 
-            # Store neuron value
-            neuron_values[(layer_idx, node_idx)] = neuron_value
-
-            # Add neuron node
+            color = "blue" if value >= 0 else "red"
             fig.add_trace(go.Scatter(
-                x=[x_position],
-                y=[y_position],
+                x=[x],
+                y=[y],
                 mode="markers+text",
-                marker=dict(
-                    size=neuron_radius * 2,
-                    color="blue" if neuron_value >= 0 else "red",  # Blue for positive, red for negative
-                ),
-                text=[f"{neuron_value:.2f}"],  # Show neuron value
-                textposition="middle center",
-                textfont=dict(
-                    size=12,        # Font size
-                    color="white"   # Text color
-                ),
+                marker=dict(size=neuron_radius * 2, color=color),
+                text=[f"{value:.2f}"],
+                textfont=dict(color="white", size=12),
                 hoverinfo="text",
-                name=f"Neuron {node_idx + 1} in Layer {layer_idx + 1}"
+                hovertext=(
+                    f"Layer {layer_idx + 1} Neuron {node_idx + 1}<br>"
+                    f"Value: {value:.4f}"
+                ),
+                showlegend=False
             ))
 
-    # Add connections between layers
-    for layer_idx, weight_matrix in enumerate(weights):
+    # ========== CONNECTIONS & VERTICAL LABELS ========== #
+    connection_traces = []
+    text_elements = []
+    occupied_positions = {}
+
+    def is_position_available(x, y):
+        """Check if a position is available based on a grid of label_spacing."""
+        key = (round(x / label_spacing), round(y / label_spacing))
+        return key not in occupied_positions
+
+    def mark_position_occupied(x, y):
+        """Mark a position as occupied."""
+        key = (round(x / label_spacing), round(y / label_spacing))
+        occupied_positions[key] = True
+
+    for layer_idx in range(len(weights)):
+        w_matrix = weights[layer_idx]
         x_start = layer_idx * layer_spacing
         x_end = (layer_idx + 1) * layer_spacing
-        y_start_offset = (canvas_height - layers[layer_idx] * 50) / 2
-        y_end_offset = (canvas_height - layers[layer_idx + 1] * 50) / 2
-        for source_idx in range(weight_matrix.shape[0]):  # For each neuron in the current layer
-            y_start = y_start_offset + source_idx * 50
-            for target_idx in range(weight_matrix.shape[1]):  # For each neuron in the next layer
-                y_end = y_end_offset + target_idx * 50
-                weight = weight_matrix[source_idx, target_idx]
-                fig.add_trace(go.Scatter(
+
+        source_y = get_y_positions(layers[layer_idx])
+        target_y = get_y_positions(layers[layer_idx + 1])
+
+        for src_idx in range(w_matrix.shape[0]):
+            # Collect all weights for this source neuron
+            weights_for_neuron = w_matrix[src_idx, :]
+            base_x = x_start - label_offset
+            base_y = source_y[src_idx]
+
+            # Sort weights by absolute value (largest first)
+            sorted_indices = np.argsort(-np.abs(weights_for_neuron))
+
+            # Place labels vertically in that order
+            for i, tgt_idx in enumerate(sorted_indices):
+                weight = weights_for_neuron[tgt_idx]
+                line_color = "gray" if weight >= 0 else "red"
+
+                # Connection line coordinates
+                y_start = source_y[src_idx]
+                y_end = target_y[tgt_idx]
+
+                # >>>>>> FIXED LINE WIDTH: width=2 <<<<<<
+                connection_traces.append(go.Scatter(
                     x=[x_start, x_end],
                     y=[y_start, y_end],
                     mode="lines",
                     line=dict(
-                        color="gray" if weight > 0 else "red",  # Gray for positive, red for negative weights
-                        width=np.abs(weight) * 3  # Thickness proportional to the absolute weight value
+                        color=line_color,
+                        width=2  # All lines have the same width now
                     ),
                     hoverinfo="text",
-                    text=[f"Weight: {weight:.4f}"],
+                    hovertext=(
+                        f"From: Layer {layer_idx + 1} Neuron {src_idx + 1}<br>"
+                        f"To: Layer {layer_idx + 2} Neuron {tgt_idx + 1}<br>"
+                        f"Weight: {weight:.6f}"
+                    ),
                     showlegend=False
                 ))
 
-    # Add layer labels
+                # Calculate label position
+                label_x = base_x
+                label_y = base_y + i * label_spacing
+
+                # Ensure position is free
+                while not is_position_available(label_x, label_y):
+                    label_y += label_spacing  # Move down
+
+                mark_position_occupied(label_x, label_y)
+
+                # Add a small text marker (label)
+                text_elements.append(go.Scatter(
+                    x=[label_x],
+                    y=[label_y],
+                    mode="markers+text",
+                    marker=dict(
+                        size=10,
+                        color="rgba(0,0,0,0)",
+                        opacity=0
+                    ),
+                    text=[f"{weight:.2f}"],
+                    textfont=dict(
+                        color="black",
+                        size=12,
+                        family="Arial Bold"
+                    ),
+                    textposition="middle right",
+                    hoverinfo="text",
+                    hovertext=(
+                        f"From: Layer {layer_idx + 1} Neuron {src_idx + 1}<br>"
+                        f"To: Layer {layer_idx + 2} Neuron {tgt_idx + 1}<br>"
+                        f"Weight: {weight:.6f}"
+                    ),
+                    showlegend=False
+                ))
+
+    # Add all traces in correct order
+    fig.add_traces(connection_traces)  # Lines first
+    fig.add_traces(text_elements)      # Then text
+
+    # ========== LAYER LABELS ========== #
     for layer_idx, num_nodes in enumerate(layers):
-        x_position = layer_idx * layer_spacing
-        fig.add_trace(go.Scatter(
-            x=[x_position],
-            y=[-500],  # Position labels below the nodes
-            mode="text",
-            text=[f"Layer {layer_idx + 1} ({num_nodes} Neurons)"],
-            textfont=dict(
-                size=20,        # Font size
-                color="black"   # Text color
-            ),
-            textposition="bottom center",
-            showlegend=False
-        ))
+        fig.add_annotation(
+            x=layer_idx * layer_spacing,
+            y=-150,
+            text=f"Layer {layer_idx + 1}<br>({num_nodes} neurons)",
+            showarrow=False,
+            yanchor="top",
+            font=dict(size=14)
+        )
 
-    # Adjust layout
+    # ========== FINAL LAYOUT ========== #
     fig.update_layout(
-        title="Neural Network Topology with Vertically Centered Neuron Weights (Full Width)",
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        showlegend=False,
-        height=canvas_height + 100,
-        width=canvas_width + 200  # Add padding for better visualization
+        title="Neural Network Topology (Fixed Connection Width)",
+        xaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showticklabels=False,
+            range=[-100, canvas_width + 100]
+        ),
+        yaxis=dict(
+            showgrid=False,
+            zeroline=False,
+            showticklabels=False,
+            range=[-200, canvas_height + 100]
+        ),
+        height=canvas_height + 200,
+        width=canvas_width + 200,
+        margin=dict(b=150),
+        plot_bgcolor="white",
+        legend=dict(
+            x=1.05,
+            y=1,
+            bordercolor="black",
+            borderwidth=1,
+            font=dict(size=12)
+        ),
+        hovermode="closest",
+        hoverdistance=30,
+        hoverlabel=dict(
+            font_size=17,  # Increase font size for hover text
+            font_family="Arial Bold"  # Optional: Change font
+        )
     )
-    return fig
 
+    return fig
 
 def convert_image_to_base64(image_path):
     """
